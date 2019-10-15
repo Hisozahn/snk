@@ -9,7 +9,7 @@ extern "C" {
 
 #define SNK_ARRAY_LEN(_array)    (sizeof(_array) / sizeof(_array[0]))
 
-void snk_assert(int expr)
+inline void snk_assert(int expr)
 {
     if (!expr)
         fprintf(stderr, "assert failed\n");
