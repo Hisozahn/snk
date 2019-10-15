@@ -9,7 +9,7 @@
 extern "C" {
 #endif
 
-/** Field dimentions */
+/** Field dimensions */
 typedef struct snk_field {
     uint8_t width;
     uint8_t height;
@@ -25,7 +25,7 @@ typedef enum snk_direction {
 
 /** Position on a field */
 typedef struct snk_position {
-    /** Horisontal coordinate, starting from left border */
+    /** Horizontal coordinate, starting from left border */
     int8_t x;
     /** Vertical coordinate, starting from upper border */
     int8_t y;
