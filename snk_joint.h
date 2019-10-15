@@ -21,7 +21,7 @@ typedef struct snk_joint_buffer {
     uint8_t first_joint;
 } snk_joint_buffer;
 
-int snk_joint_buffer_init(snk_joint_buffer *buffer);
+void snk_joint_buffer_init(snk_joint_buffer *buffer);
 int snk_joint_get(const snk_joint_buffer *buffer, uint8_t i, snk_joint *joint);
 int snk_joint_add(snk_joint_buffer *buffer, snk_joint *joint);
 int snk_joint_del(snk_joint_buffer *buffer);

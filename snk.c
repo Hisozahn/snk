@@ -58,6 +58,21 @@ snk_check_snake(const snk_snake *snake, const snk_field *field)
     return ENOTSUP;
 }
 
+void
+snk_snake_init(const snk_position *pos, const snk_direction *direction, const snk_joint_buffer *joints,
+               uint16_t length, uint16_t pending_length, snk_snake *snake)
+{
+    if (joints != NULL)
+        snake->joints = *joints;
+    else
+        snk_joint_buffer_init(&snake->joints);
+
+    snake->head_direction = *direction;
+    snake->head_position = *pos;
+    snake->length = length;
+    snake->pending_length = pending_length;
+}
+
 int
 snk_create(const snk_field *field, const snk_position *start_position,
            const snk_direction *start_direction, uint16_t start_length, snk_process *process)
@@ -74,12 +89,7 @@ snk_create(const snk_field *field, const snk_position *start_position,
   
     result.field = *field;
 
-    result.snake.head_position = *start_position;
-    result.snake.head_direction = *start_direction;
-    result.snake.length = start_length;
-    rc = snk_joint_buffer_init(&result.snake.joints);
-    if (rc != 0)
-        return rc;
+    snk_snake_init(start_position, start_direction, NULL, 0, 0, &result.snake);
 
     rc = snk_check_snake(&result.snake, &result.field);
     if (rc != 0)
