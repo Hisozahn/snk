@@ -1,2 +1,4 @@
 snk_build/
 valgrind-out.txt
+cmake-build*/
+.idea/
