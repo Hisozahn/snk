@@ -7,7 +7,7 @@
 extern "C" {
 #endif
 
-#define SNK_ARRAY_LEN(_array)    (sizeof(_array) / sizeof(_array[0]))
+#define SNK_ARRAY_LEN(_array)    (sizeof(_array) / sizeof((_array)[0]))
 
 inline void snk_assert(int expr)
 {
