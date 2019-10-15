@@ -26,16 +26,55 @@ struct snk_process {
 };
 
 static int
-snk_check_position(const snk_position *position, const snk_field *field)
+snk_check_position(const snk_position *position, uint8_t field_width, uint8_t field_height)
 {
-    if (position->x < 0 || (size_t)position->x >= field->width)
+    if (position->x < 0 || position->x >= field_width)
         return EINVAL;
 
-    if (position->y < 0 || (size_t)position->y >= field->height)
+    if (position->y < 0 || position->y >= field_height)
         return EINVAL;
 
     return 0;
 }
+
+static int
+snk_check_field_obstacle(const snk_field_obstacle *obstacle, uint8_t field_width, uint8_t field_height)
+{
+    int rc;
+
+    rc = snk_check_position(&obstacle->top_left, field_width, field_height);
+    if (rc == 0)
+        rc = snk_check_position(&obstacle->bottom_right, field_width, field_height);
+
+    return rc;
+}
+
+int
+snk_create_field(uint8_t width, uint8_t height, uint8_t n_obstacles, const snk_field_obstacle *obstacles, snk_field *field)
+{
+    size_t i;
+    int rc;
+
+    if (n_obstacles > SNK_ARRAY_LEN(field->obstacles))
+        return ENOBUFS;
+
+    for (i = 0; i < n_obstacles; i++)
+    {
+        rc = snk_check_field_obstacle(&obstacles[i], width, height);
+        if (rc != 0)
+            return rc;
+    }
+
+    for (i = 0; i < n_obstacles; i++)
+        field->obstacles[i] = obstacles[i];
+
+    field->height = height;
+    field->width = width;
+    field->n_obstacles = n_obstacles;
+
+    return 0;
+}
+
 
 static int
 snk_check_snake(const snk_snake *snake, const snk_field *field)
@@ -46,7 +85,7 @@ snk_check_snake(const snk_snake *snake, const snk_field *field)
     int rc;
 
     /* TODO: implement */
-    rc = snk_check_position(&snake->head_position, field);
+    rc = snk_check_position(&snake->head_position, field->width, field->height);
     if (rc != 0)
         return rc;
 

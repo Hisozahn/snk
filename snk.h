@@ -9,11 +9,7 @@
 extern "C" {
 #endif
 
-/** Field dimensions */
-typedef struct snk_field {
-    uint8_t width;
-    uint8_t height;
-} snk_field;
+#define SNK_FIELD_OBSTACLE_MAX 32
 
 /** Direction of an object */
 typedef enum snk_direction {
@@ -31,8 +27,23 @@ typedef struct snk_position {
     int8_t y;
 } snk_position;
 
+/** Field obstacle */
+typedef struct snk_field_obstacle {
+    snk_position top_left;
+    snk_position bottom_right;
+} snk_field_obstacle;
+
+/** Field dimensions */
+typedef struct snk_field {
+    uint8_t width;
+    uint8_t height;
+    snk_field_obstacle obstacles[SNK_FIELD_OBSTACLE_MAX];
+    uint8_t n_obstacles;
+} snk_field;
+
 typedef struct snk_process snk_process;
 
+int snk_create_field(uint8_t width, uint8_t height, uint8_t n_obstacles, const snk_field_obstacle *obstacles, snk_field *field);
 int snk_create(const snk_field *field, const snk_position *start_position,
                const snk_direction *start_direction, uint16_t start_length, snk_process *process);
 int snk_start(snk_process *process);
