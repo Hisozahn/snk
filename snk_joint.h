@@ -7,6 +7,7 @@
 extern "C" {
 #endif
 
+/* Must fit into snk_joint_buffer's n_joints */
 #define SNK_JOINTS_MAX 32
 
 typedef struct snk_joint {
