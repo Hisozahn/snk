@@ -43,6 +43,8 @@ typedef struct snk_field {
 
 typedef struct snk_process snk_process;
 
+int snk_position_advance(snk_position *position, snk_direction direction);
+int snk_position_compare(const snk_position *a, const snk_position *b);
 int snk_create_field(uint8_t width, uint8_t height, uint8_t n_obstacles, const snk_field_obstacle *obstacles, snk_field *field);
 int snk_create(const snk_field *field, const snk_position *start_position,
                const snk_direction *start_direction, uint16_t start_length, snk_process *process);

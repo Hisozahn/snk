@@ -1,6 +1,7 @@
 #include "snk.h"
 #include "snk_joint.h"
 #include "snk_util.h"
+#include "snk_snake.h"
 
 #define SNK_FIELD_DATA_MAX 2048
 
@@ -9,14 +10,6 @@ typedef enum snk_state {
     SNK_STATE_RUNNING,
 } snk_state;
 
-/** Snake description */
-typedef struct snk_snake {
-    snk_position head_position;
-    snk_direction head_direction;
-    snk_joint_buffer joints;
-    uint16_t length;
-    uint16_t pending_length;
-} snk_snake;
 
 struct snk_process {
     snk_field field;
@@ -24,6 +17,36 @@ struct snk_process {
     snk_snake snake;
     snk_state state;
 };
+
+int
+snk_position_advance(snk_position *position, snk_direction direction)
+{
+    switch (direction)
+    {
+        case SNK_LEFT:
+            position->x--;
+            break;
+        case SNK_RIGHT:
+            position->x++;
+            break;
+        case SNK_UP:
+            position->y--;
+            break;
+        case SNK_DOWN:
+            position->y++;
+            break;
+        default:
+            return EINVAL;
+    }
+
+    return 0;
+}
+
+int
+snk_position_compare(const snk_position *a, const snk_position *b)
+{
+    return (a->y == b->y && a->x == b->x);
+}
 
 static int
 snk_check_position_possible(const snk_position *position, uint8_t field_width, uint8_t field_height)
@@ -104,26 +127,41 @@ snk_create_field(uint8_t width, uint8_t height, uint8_t n_obstacles, const snk_f
     return 0;
 }
 
+struct snk_check_snake_data {
+    const snk_field *field;
+    snk_position positions[64];
+    uint8_t n_positions;
+};
+
+static int
+snk_check_snake_cb(const snk_position *pos, void *data)
+{
+    struct snk_check_snake_data *check_data = data;
+    uint8_t i;
+    int rc;
+
+    rc = snk_check_position_available(pos, check_data->field);
+    if (rc != 0)
+        return rc;
+
+    for (i = 0; i < check_data->n_positions; i++)
+    {
+        if (snk_position_compare(pos, &check_data->positions[i]) == 0)
+            return EINVAL;
+    }
+
+    check_data->positions[check_data->n_positions] = *pos;
+    check_data->n_positions++;
+
+    return 0;
+}
 
 static int
 snk_check_snake(const snk_snake *snake, const snk_field *field)
 {
-    uint16_t i;
-    uint8_t joint_i;
-    snk_joint joint;
-    int rc;
+    struct snk_check_snake_data data = {field, {0}, 0};
 
-    /* TODO: implement */
-    rc = snk_check_position_possible(&snake->head_position, field->width, field->height);
-    if (rc != 0)
-        return rc;
-
-    for (i = 1, joint_i = 0; i < snake->length; i++)
-    {
-        snk_joint_get(&snake->joints, joint_i, &joint);
-    }
-
-    return ENOTSUP;
+    return snk_snake_walk(snake, snk_check_snake_cb, &data);
 }
 
 void
