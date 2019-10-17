@@ -34,23 +34,20 @@ snk_joint_add(snk_joint_buffer *buffer, snk_joint *joint) {
     if (buffer->n_joints + 1U > SNK_ARRAY_LEN(buffer->joints))
         return ENOBUFS;
 
-    index = get_index_in_buffer(buffer, buffer->n_joints);
+    index = get_index_in_buffer(buffer, (uint8_t)-1);
     buffer->joints[index] = *joint;
     buffer->n_joints++;
+    buffer->first_joint = index;
 
     return 0;
 }
 
 int
 snk_joint_del(snk_joint_buffer *buffer) {
-    uint8_t index;
-
     if (buffer->n_joints == 0)
         return EINVAL;
 
-    index = get_index_in_buffer(buffer, 1U);
     buffer->n_joints--;
-    buffer->first_joint = index;
 
     return 0;
 }
