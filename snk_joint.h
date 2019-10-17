@@ -1,7 +1,7 @@
 #ifndef __SNK_JOINT_H__
 #define __SNK_JOINT_H__
 
-#include "snk.h"
+#include "snk_defs.h"
 
 #ifdef __cplusplus
 extern "C" {

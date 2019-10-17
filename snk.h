@@ -4,28 +4,14 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <errno.h>
+#include "snk_snake.h"
+#include "snk_joint.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 #define SNK_FIELD_OBSTACLE_MAX 32
-
-/** Direction of an object */
-typedef enum snk_direction {
-    SNK_LEFT,
-    SNK_UP,
-    SNK_RIGHT,
-    SNK_DOWN,
-} snk_direction;
-
-/** Position on a field */
-typedef struct snk_position {
-    /** Horizontal coordinate, starting from left border */
-    int8_t x;
-    /** Vertical coordinate, starting from upper border */
-    int8_t y;
-} snk_position;
 
 /** Field obstacle */
 typedef struct snk_field_obstacle {
@@ -41,16 +27,28 @@ typedef struct snk_field {
     uint8_t n_obstacles;
 } snk_field;
 
-typedef struct snk_process snk_process;
+typedef enum snk_state {
+    SNK_STATE_READY,
+    SNK_STATE_RUNNING,
+} snk_state;
+
+
+typedef struct snk_process {
+    snk_field field;
+    snk_snake snake;
+    snk_state state;
+} snk_process;
 
 int snk_position_advance(snk_position *position, snk_direction direction);
 int snk_position_compare(const snk_position *a, const snk_position *b);
+
 int snk_create_field(uint8_t width, uint8_t height, uint8_t n_obstacles, const snk_field_obstacle *obstacles, snk_field *field);
 int snk_create(const snk_field *field, const snk_position *start_position,
-               const snk_direction *start_direction, uint16_t start_length, snk_process *process);
+               snk_direction start_direction, uint16_t start_length, snk_process *process);
 int snk_start(snk_process *process);
 int snk_next_tick(snk_process *process);
 int snk_choose_direction(snk_process *process, snk_direction direction);
+int snk_render(const snk_process *process, uint8_t *data, size_t data_size);
 int snk_destroy(snk_process *process);
 
 #ifdef __cplusplus

@@ -1,22 +1,5 @@
 #include "snk.h"
-#include "snk_joint.h"
 #include "snk_util.h"
-#include "snk_snake.h"
-
-#define SNK_FIELD_DATA_MAX 2048
-
-typedef enum snk_state {
-    SNK_STATE_READY,
-    SNK_STATE_RUNNING,
-} snk_state;
-
-
-struct snk_process {
-    snk_field field;
-    uint8_t field_data[SNK_FIELD_DATA_MAX];
-    snk_snake snake;
-    snk_state state;
-};
 
 int
 snk_position_advance(snk_position *position, snk_direction direction)
@@ -45,7 +28,7 @@ snk_position_advance(snk_position *position, snk_direction direction)
 int
 snk_position_compare(const snk_position *a, const snk_position *b)
 {
-    return (a->y == b->y && a->x == b->x);
+    return !(a->y == b->y && a->x == b->x);
 }
 
 static int
@@ -165,7 +148,7 @@ snk_check_snake(const snk_snake *snake, const snk_field *field)
 }
 
 void
-snk_snake_init(const snk_position *pos, const snk_direction *direction, const snk_joint_buffer *joints,
+snk_snake_init(const snk_position *pos, snk_direction direction, const snk_joint_buffer *joints,
                uint16_t length, uint16_t pending_length, snk_snake *snake)
 {
     if (joints != NULL)
@@ -173,7 +156,7 @@ snk_snake_init(const snk_position *pos, const snk_direction *direction, const sn
     else
         snk_joint_buffer_init(&snake->joints);
 
-    snake->head_direction = *direction;
+    snake->head_direction = direction;
     snake->head_position = *pos;
     snake->length = length;
     snake->pending_length = pending_length;
@@ -181,7 +164,7 @@ snk_snake_init(const snk_position *pos, const snk_direction *direction, const sn
 
 int
 snk_create(const snk_field *field, const snk_position *start_position,
-           const snk_direction *start_direction, uint16_t start_length, snk_process *process)
+           snk_direction start_direction, uint16_t start_length, snk_process *process)
 {
     snk_process result;
     int rc;
@@ -189,13 +172,9 @@ snk_create(const snk_field *field, const snk_position *start_position,
     if (start_length == 0)
         return EINVAL;
 
-    if ((field->width * field->height) > SNK_ARRAY_LEN(result.field_data))
-        return EINVAL;
-
-  
     result.field = *field;
 
-    snk_snake_init(start_position, start_direction, NULL, 0, 0, &result.snake);
+    snk_snake_init(start_position, start_direction, NULL, start_length, 0, &result.snake);
 
     rc = snk_check_snake(&result.snake, &result.field);
     if (rc != 0)
@@ -211,17 +190,59 @@ snk_create(const snk_field *field, const snk_position *start_position,
 int
 snk_start(snk_process *process)
 {
-    (void)process;
+    switch (process->state)
+    {
+        case SNK_STATE_READY:
+            process->state = SNK_STATE_RUNNING;
+            return 0;
+        case SNK_STATE_RUNNING:
+        default:
+            return EINVAL;
+    }
+}
 
-    return ENOTSUP;
+
+static int
+snk_snake_advance(snk_snake *snake, const snk_field *field)
+{
+    snk_snake snake_copy = *snake;
+    int rc;
+
+    snk_position_advance(&snake_copy.head_position, snake_copy.head_direction);
+    if (snake_copy.pending_length > 0)
+    {
+        snake_copy.length++;
+        snake_copy.pending_length--;
+    }
+
+    rc = snk_check_snake(&snake_copy, field);
+    if (rc != 0)
+        return rc;
+
+    *snake = snake_copy;
+
+    return 0;
 }
 
 int
 snk_next_tick(snk_process *process)
 {
-    (void)process;
+    int rc;
 
-    return ENOTSUP;
+    switch (process->state)
+    {
+        case SNK_STATE_RUNNING:
+            break;
+        case SNK_STATE_READY:
+        default:
+            return EINVAL;
+    }
+
+    rc = snk_snake_advance(&process->snake, &process->field);
+    if (rc != 0)
+        return rc;
+
+    return 0;
 }
 
 int
@@ -231,4 +252,80 @@ snk_choose_direction(snk_process *process, snk_direction direction)
     (void)direction;
 
     return ENOTSUP;
+}
+
+static int
+snk_render_position(const snk_field *field, const snk_position *pos, uint8_t *data, size_t data_size)
+{
+    size_t index = (pos->y * field->width) + pos->x;
+
+    if (index >= data_size)
+        return ENOBUFS;
+
+    data[index] = 'x';
+
+    return 0;
+}
+
+static int
+snk_render_field_obstacle(const snk_field *field, const snk_field_obstacle *obstacle, uint8_t *data, size_t data_size)
+{
+    snk_position pos = obstacle->top_left;
+    snk_position row_start;
+    int rc;
+
+    while (obstacle->bottom_right.y >= pos.y)
+    {
+        row_start = pos;
+
+        while (obstacle->bottom_right.x >= pos.x)
+        {
+            rc = snk_render_position(field, &pos, data, data_size);
+            if (rc != 0)
+                return rc;
+
+            snk_position_advance(&pos, SNK_RIGHT);
+        }
+
+        pos = row_start;
+        snk_position_advance(&pos, SNK_DOWN);
+    }
+
+    return 0;
+}
+struct snk_render_data {
+    const snk_field *field;
+    uint8_t *data;
+    size_t data_size;
+};
+
+static int
+snk_render_cb(const snk_position *pos, void *data)
+{
+    struct snk_render_data *render_data = data;
+
+    return snk_render_position(render_data->field, pos, render_data->data, render_data->data_size);
+}
+
+int
+snk_render(const snk_process *process, uint8_t *data, size_t data_size)
+{
+    struct snk_render_data render_data = {&process->field, data, data_size};
+    size_t i;
+    int rc;
+
+    if ((size_t)(process->field.height * process->field.width) > data_size)
+        return ENOBUFS;
+
+    for (i = 0; i < data_size; i++)
+        data[i] = '0';
+
+    for (i = 0; i < process->field.n_obstacles; i++)
+    {
+        rc = snk_render_field_obstacle(&process->field, &process->field.obstacles[i], data, data_size);
+        if (rc != 0)
+            return rc;
+    }
+
+    return snk_snake_walk(&process->snake, snk_render_cb, &render_data);
 }

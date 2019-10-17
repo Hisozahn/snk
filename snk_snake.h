@@ -1,7 +1,7 @@
 #ifndef __SNK_SNAKE_H__
 #define __SNK_SNAKE_H__
 
-#include "snk.h"
+#include "snk_defs.h"
 #include "snk_joint.h"
 
 #ifdef __cplusplus

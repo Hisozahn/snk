@@ -1,10 +1,11 @@
+#include <errno.h>
 #include "snk_joint.h"
 #include "snk_util.h"
 
 void
 snk_joint_buffer_init(snk_joint_buffer *buffer) {
-    (void) buffer;
-    /* TODO: check if memset is working */
+    buffer->first_joint = 0;
+    buffer->n_joints = 0;
 }
 
 static uint8_t
