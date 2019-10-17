@@ -181,6 +181,7 @@ snk_create(const snk_field *field, const snk_position *start_position,
         return rc;
 
     result.state = SNK_STATE_READY;
+    result.next_direction = start_direction;
 
     *process = result;
 
@@ -202,12 +203,23 @@ snk_start(snk_process *process)
 }
 
 
+
 static int
-snk_snake_advance(snk_snake *snake, const snk_field *field)
+snk_snake_advance(snk_snake *snake, snk_direction next_direction, const snk_field *field)
 {
     snk_snake snake_copy = *snake;
+    snk_joint joint = {snake_copy.head_position, snk_direction_reverse(snake_copy.head_direction)};
     int rc;
 
+    if (snake_copy.head_direction != next_direction)
+    {
+        printf("ADD joint\n");
+        rc = snk_joint_add(&snake_copy.joints, &joint);
+        if (rc != 0)
+            return rc;
+    }
+
+    snake_copy.head_direction = next_direction;
     snk_position_advance(&snake_copy.head_position, snake_copy.head_direction);
     if (snake_copy.pending_length > 0)
     {
@@ -238,7 +250,7 @@ snk_next_tick(snk_process *process)
             return EINVAL;
     }
 
-    rc = snk_snake_advance(&process->snake, &process->field);
+    rc = snk_snake_advance(&process->snake, process->next_direction, &process->field);
     if (rc != 0)
         return rc;
 
@@ -248,10 +260,9 @@ snk_next_tick(snk_process *process)
 int
 snk_choose_direction(snk_process *process, snk_direction direction)
 {
-    (void)process;
-    (void)direction;
+    process->next_direction = direction;
 
-    return ENOTSUP;
+    return 0;
 }
 
 static int

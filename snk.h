@@ -37,6 +37,7 @@ typedef struct snk_process {
     snk_field field;
     snk_snake snake;
     snk_state state;
+    snk_direction next_direction;
 } snk_process;
 
 int snk_position_advance(snk_position *position, snk_direction direction);

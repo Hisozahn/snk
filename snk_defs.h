@@ -14,6 +14,7 @@ typedef enum snk_direction {
     SNK_UP,
     SNK_RIGHT,
     SNK_DOWN,
+    SNK_INVALID,
 } snk_direction;
 
 /** Position on a field */
@@ -23,6 +24,24 @@ typedef struct snk_position {
     /** Vertical coordinate, starting from upper border */
     uint8_t y;
 } snk_position;
+
+inline snk_direction
+snk_direction_reverse(snk_direction direction)
+{
+    switch (direction)
+    {
+        case SNK_RIGHT:
+            return SNK_LEFT;
+        case SNK_LEFT:
+            return SNK_RIGHT;
+        case SNK_DOWN:
+            return SNK_UP;
+        case SNK_UP:
+            return SNK_DOWN;
+        default:
+            return SNK_INVALID;
+    }
+}
 
 #ifdef __cplusplus
 } /* extern "C" */

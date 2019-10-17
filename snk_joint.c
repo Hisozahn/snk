@@ -19,8 +19,9 @@ int
 snk_joint_get(const snk_joint_buffer *buffer, uint8_t i, snk_joint *joint) {
     uint8_t index;
 
+    printf("joint_get: %u\n", i);
     if (i >= buffer->n_joints)
-        return EINVAL;
+        return ENOENT;
 
     index = get_index_in_buffer(buffer, i);
     *joint = buffer->joints[index];
@@ -36,6 +37,7 @@ snk_joint_add(snk_joint_buffer *buffer, snk_joint *joint) {
         return ENOBUFS;
 
     index = get_index_in_buffer(buffer, (uint8_t)-1);
+    printf("index: %u\n", index);
     buffer->joints[index] = *joint;
     buffer->n_joints++;
     buffer->first_joint = index;
