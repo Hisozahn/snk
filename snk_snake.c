@@ -101,3 +101,44 @@ snk_snake_advance(snk_snake *snake, snk_direction next_direction)
 
     return 0;
 }
+
+struct snk_snake_positions_data {
+    snk_position *positions;
+    size_t n_positions_in;
+    size_t n_positions_out;
+};
+
+static int
+snk_snake_get_positions_cb(const snk_position *pos, void *data)
+{
+    struct snk_snake_positions_data *pos_data = data;
+
+    if (pos_data->n_positions_out >= pos_data->n_positions_in)
+        return EPERM;
+
+    pos_data->positions[pos_data->n_positions_out] = *pos;
+    pos_data->n_positions_out++;
+
+    return 0;
+}
+
+int
+snk_snake_get_positions(const snk_snake *snake, size_t *n_positions, snk_position *positions)
+{
+    struct snk_snake_positions_data data = {positions, *n_positions, 0};
+    int rc;
+
+    rc = snk_snake_walk(snake, snk_snake_get_positions_cb, &data);
+    if (rc != 0)
+        return rc;
+
+    *n_positions = data.n_positions_out;
+
+    return rc;
+}
+
+void
+snk_snake_add_pending_length(snk_snake *snake, uint8_t length)
+{
+    snake->pending_length += length;
+}

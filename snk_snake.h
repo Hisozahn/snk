@@ -21,6 +21,8 @@ typedef int (*snk_snake_walk_cb)(const snk_position *pos, void *data);
 
 int snk_snake_walk(const snk_snake *snake, snk_snake_walk_cb cb, void *cb_data);
 int snk_snake_advance(snk_snake *snake, snk_direction next_direction);
+int snk_snake_get_positions(const snk_snake *snake, size_t *n_positions, snk_position *positions);
+void snk_snake_add_pending_length(snk_snake *snake, uint8_t length);
 
 #ifdef __cplusplus
 } /* extern "C" */

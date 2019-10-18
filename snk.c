@@ -107,6 +107,7 @@ snk_create_field(uint8_t width, uint8_t height, uint8_t n_obstacles, const snk_f
     field->height = height;
     field->width = width;
     field->n_obstacles = n_obstacles;
+    field->n_food = 0;
 
     return 0;
 }
@@ -203,10 +204,8 @@ snk_start(snk_process *process)
     }
 }
 
-
-
 static int
-snk_snake_advance_in_field(snk_snake *snake, snk_direction next_direction, const snk_field *field)
+snk_snake_advance_in_field(snk_snake *snake, snk_direction next_direction, snk_field *field)
 {
     snk_snake snake_copy = *snake;
     int rc;
@@ -215,11 +214,49 @@ snk_snake_advance_in_field(snk_snake *snake, snk_direction next_direction, const
     if (rc != 0)
         return rc;
 
+    if (field->n_food > 0 && snk_position_compare(&snake_copy.head_position, &field->food) == 0)
+    {
+        snk_snake_add_pending_length(&snake_copy, 1);
+        field->n_food = 0;
+    }
+
     rc = snk_check_snake(&snake_copy, field);
     if (rc != 0)
         return rc;
 
     *snake = snake_copy;
+
+    return 0;
+}
+
+static int
+snk_generate_food(const snk_snake *snake, snk_field *field)
+{
+    snk_position pos = {3, 3};
+    snk_position snk_positions[64];
+    size_t n_snk_positions = SNK_ARRAY_LEN(snk_positions);
+    size_t i;
+    int rc;
+
+    rc = snk_check_position_available(&pos, field);
+    if (rc != 0)
+        return 0;
+
+    rc = snk_snake_get_positions(snake, &n_snk_positions, snk_positions);
+    if (rc != 0)
+        return rc;
+
+    for (i = 0; i < n_snk_positions; i++)
+    {
+        if (snk_position_compare(&pos, &snk_positions[i]) == 0)
+            return 0;
+    }
+
+    if (field->n_food > 0 && (snk_position_compare(&pos, &field->food) == 0))
+        return 0;
+
+    field->n_food = 1;
+    field->food = pos;
 
     return 0;
 }
@@ -239,6 +276,10 @@ snk_next_tick(snk_process *process)
     }
 
     rc = snk_snake_advance_in_field(&process->snake, process->next_direction, &process->field);
+    if (rc != 0)
+        return rc;
+
+    rc = snk_generate_food(&process->snake, &process->field);
     if (rc != 0)
         return rc;
 

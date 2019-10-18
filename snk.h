@@ -26,6 +26,8 @@ typedef struct snk_field {
     uint8_t height;
     snk_field_obstacle obstacles[SNK_FIELD_OBSTACLE_MAX];
     uint8_t n_obstacles;
+    snk_position food;
+    uint8_t n_food;
 } snk_field;
 
 typedef enum snk_state {
