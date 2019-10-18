@@ -295,14 +295,29 @@ snk_choose_direction(snk_process *process, snk_direction direction)
 }
 
 static int
-snk_render_position(const snk_field *field, const snk_position *pos, uint8_t *data, size_t data_size)
+snk_render_position(const snk_field *field, const snk_position *pos, uint8_t type, uint8_t *data, size_t data_size)
 {
     size_t index = (pos->y * field->width) + pos->x;
 
     if (index >= data_size)
         return EPERM;
 
-    data[index] = 'x';
+    data[index] = type;
+
+    return 0;
+}
+
+static int
+snk_render_field_food(const snk_field *field, uint8_t *data, size_t data_size)
+{
+    int rc;
+
+    if (field->n_food > 0)
+    {
+        rc = snk_render_position(field, &field->food, '@', data, data_size);
+        if (rc != 0)
+            return rc;
+    }
 
     return 0;
 }
@@ -320,7 +335,7 @@ snk_render_field_obstacle(const snk_field *field, const snk_field_obstacle *obst
 
         while (obstacle->bottom_right.x >= pos.x)
         {
-            rc = snk_render_position(field, &pos, data, data_size);
+            rc = snk_render_position(field, &pos, '-', data, data_size);
             if (rc != 0)
                 return rc;
 
@@ -344,7 +359,7 @@ snk_render_cb(const snk_position *pos, void *data)
 {
     struct snk_render_data *render_data = data;
 
-    return snk_render_position(render_data->field, pos, render_data->data, render_data->data_size);
+    return snk_render_position(render_data->field, pos, 'x', render_data->data, render_data->data_size);
 }
 
 int
@@ -363,6 +378,13 @@ snk_render(const snk_process *process, uint8_t *data, size_t data_size)
     for (i = 0; i < process->field.n_obstacles; i++)
     {
         rc = snk_render_field_obstacle(&process->field, &process->field.obstacles[i], data, data_size);
+        if (rc != 0)
+            return rc;
+    }
+
+    for (i = 0; i < process->field.n_food; i++)
+    {
+        rc = snk_render_field_food(&process->field, data, data_size);
         if (rc != 0)
             return rc;
     }
