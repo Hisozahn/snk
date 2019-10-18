@@ -41,3 +41,33 @@ snk_snake_walk(const snk_snake *snake, snk_snake_walk_cb cb, void *cb_data)
 
     return 0;
 }
+
+int
+snk_snake_advance(snk_snake *snake, snk_direction next_direction)
+{
+    snk_joint joint = {snake->head_position, snk_direction_reverse(snake->head_direction)};
+    int rc;
+
+    if (snake->length > 2 &&
+        snk_direction_reverse(snake->head_direction) == next_direction)
+    {
+        return EPERM;
+    }
+
+    if (snake->head_direction != next_direction)
+    {
+        rc = snk_joint_add(&snake->joints, &joint);
+        if (rc != 0)
+            return rc;
+    }
+
+    snake->head_direction = next_direction;
+    snk_position_advance(&snake->head_position, snake->head_direction);
+    if (snake->pending_length > 0)
+    {
+        snake->length++;
+        snake->pending_length--;
+    }
+
+    return 0;
+}

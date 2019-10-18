@@ -20,6 +20,7 @@ typedef struct snk_snake {
 typedef int (*snk_snake_walk_cb)(const snk_position *pos, void *data);
 
 int snk_snake_walk(const snk_snake *snake, snk_snake_walk_cb cb, void *cb_data);
+int snk_snake_advance(snk_snake *snake, snk_direction next_direction);
 
 #ifdef __cplusplus
 } /* extern "C" */
