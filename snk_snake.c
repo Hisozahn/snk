@@ -18,18 +18,17 @@ snk_snake_walk(const snk_snake *snake, snk_snake_walk_cb cb, void *cb_data)
         printf("n_joints: %u\n", snake->joints.n_joints);
         if (snake->joints.n_joints > 0)
         {
-            if (i == 0 || snk_position_compare(&pos, &next_joint.position) == 0)
+            rc = snk_joint_get(&snake->joints, joint_i, &next_joint);
+            if (rc == 0)
             {
-                rc = snk_joint_get(&snake->joints, joint_i++, &next_joint);
-                if (rc != 0 && rc != ENOENT)
-                    return rc;
-
-                if (i != 0)
+                if (snk_position_compare(&pos, &next_joint.position) == 0)
                 {
-                    printf("change direction");
                     direction = next_joint.direction;
+                    joint_i++;
                 }
             }
+            else if (rc != ENOENT)
+                return rc;
         }
 
         rc = cb(&pos, cb_data);
