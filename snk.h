@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <errno.h>
+#include "snk_defs.h"
 #include "snk_snake.h"
 #include "snk_joint.h"
 

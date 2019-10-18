@@ -25,7 +25,7 @@ typedef struct snk_position {
     uint8_t y;
 } snk_position;
 
-inline snk_direction
+static inline snk_direction
 snk_direction_reverse(snk_direction direction)
 {
     switch (direction)

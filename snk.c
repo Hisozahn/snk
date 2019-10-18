@@ -91,7 +91,7 @@ snk_create_field(uint8_t width, uint8_t height, uint8_t n_obstacles, const snk_f
     int rc;
 
     if (n_obstacles > SNK_ARRAY_LEN(field->obstacles))
-        return ENOBUFS;
+        return EPERM;
 
     for (i = 0; i < n_obstacles; i++)
     {
@@ -271,7 +271,7 @@ snk_render_position(const snk_field *field, const snk_position *pos, uint8_t *da
     size_t index = (pos->y * field->width) + pos->x;
 
     if (index >= data_size)
-        return ENOBUFS;
+        return EPERM;
 
     data[index] = 'x';
 
@@ -326,7 +326,7 @@ snk_render(const snk_process *process, uint8_t *data, size_t data_size)
     int rc;
 
     if ((size_t)(process->field.height * process->field.width) > data_size)
-        return ENOBUFS;
+        return EPERM;
 
     for (i = 0; i < data_size; i++)
         data[i] = '0';

@@ -34,7 +34,7 @@ snk_joint_add(snk_joint_buffer *buffer, snk_joint *joint) {
     uint8_t index;
 
     if (buffer->n_joints + 1U > SNK_ARRAY_LEN(buffer->joints))
-        return ENOBUFS;
+        return EPERM;
 
     index = get_index_in_buffer(buffer, (uint8_t)-1);
     printf("index: %u\n", index);
