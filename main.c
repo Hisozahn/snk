@@ -41,7 +41,7 @@ main(int argc, char *argv[])
 
     CHECK_RC(snk_create_field(15, 10, SNK_ARRAY_LEN(obstacles), obstacles, &field));
 
-    CHECK_RC(snk_create(&field, &start_position, SNK_RIGHT, 4, &process));
+    CHECK_RC(snk_create(&field, &start_position, SNK_RIGHT, 5, &process));
 
     CHECK_RC(snk_start(&process));
 
@@ -53,6 +53,7 @@ main(int argc, char *argv[])
 
         draw(draw_data, process.field.width, process.field.height);
         //Sleep(1000);
+        retry:
         if ((input = getchar()) != EOF)
         {
             snk_direction new_direction;
@@ -73,8 +74,7 @@ main(int argc, char *argv[])
                     new_direction = SNK_DOWN;
                     break;
                 default:
-                    new_direction = SNK_RIGHT;
-                    break;
+                    goto retry;
 
             }
             CHECK_RC(snk_choose_direction(&process, new_direction));

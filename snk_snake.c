@@ -31,6 +31,7 @@ snk_snake_walk(const snk_snake *snake, snk_snake_walk_cb cb, void *cb_data)
                 return rc;
         }
 
+        printf("%s: CALLBACK pos x: %u, y: %u\n", __FUNCTION__, pos.x, pos.y);
         rc = cb(&pos, cb_data);
         if (rc != 0)
             return rc;
