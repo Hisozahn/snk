@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <ctype.h>
 #include <windows.h>
 #include "snk.h"
 #include "snk_util.h"
@@ -33,6 +34,7 @@ main(int argc, char *argv[])
     snk_process process;
     snk_field field;
     int rc;
+    int input;
 
     (void)argc;
     (void)argv;
@@ -43,17 +45,39 @@ main(int argc, char *argv[])
 
     CHECK_RC(snk_start(&process));
 
-    for (i = 0; i < 10; i++)
+    for (i = 0; i < 100; i++)
     {
         CHECK_RC(snk_next_tick(&process));
 
         CHECK_RC(snk_render(&process, draw_data, sizeof(draw_data)));
 
         draw(draw_data, process.field.width, process.field.height);
-        Sleep(300);
-        if (i == 4)
+        //Sleep(1000);
+        if ((input = getchar()) != EOF)
         {
-            CHECK_RC(snk_choose_direction(&process, SNK_UP));
+            snk_direction new_direction;
+            char c = (char)tolower(input);
+
+            switch (c)
+            {
+                case 'a':
+                    new_direction = SNK_LEFT;
+                    break;
+                case 'd':
+                    new_direction = SNK_RIGHT;
+                    break;
+                case 'w':
+                    new_direction = SNK_UP;
+                    break;
+                case 's':
+                    new_direction = SNK_DOWN;
+                    break;
+                default:
+                    new_direction = SNK_RIGHT;
+                    break;
+
+            }
+            CHECK_RC(snk_choose_direction(&process, new_direction));
         }
     }
 
