@@ -16,7 +16,7 @@ snk_snake_walk(const snk_snake *snake, snk_snake_walk_cb cb, void *cb_data)
     for (i = 0, joint_i = 0; i < snake->length; i++)
     {
         printf("n_joints: %u\n", snake->joints.n_joints);
-        if (snake->joints.n_joints > 0)
+        if (snk_joint_size(&snake->joints) > 0)
         {
             rc = snk_joint_get(&snake->joints, joint_i, &next_joint);
             if (rc == 0)

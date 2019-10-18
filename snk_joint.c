@@ -54,3 +54,9 @@ snk_joint_del(snk_joint_buffer *buffer) {
 
     return 0;
 }
+
+uint8_t
+snk_joint_size(const snk_joint_buffer *buffer)
+{
+    return buffer->n_joints;
+}
