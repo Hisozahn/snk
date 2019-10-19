@@ -13,14 +13,14 @@ snk_snake_walk_impl(const snk_snake *snake, snk_snake_walk_cb cb, void *cb_data,
 
     for (i = 0, joint_i = 0; i < snake->length; i++)
     {
-        if (snk_joint_size(&snake->joints) > 0)
+        if (snk_joint_buffer_size(&snake->joints) > 0)
         {
-            rc = snk_joint_get(&snake->joints, joint_i, &next_joint);
+            rc = snk_joint_buffer_get(&snake->joints, joint_i, &next_joint);
             if (rc == SNK_RC_SUCCESS)
             {
-                if (snk_position_compare(&pos, &next_joint.position) == 0)
+                if (snk_position_compare(&pos, snk_joint_get_position(&next_joint)) == 0)
                 {
-                    direction = next_joint.direction;
+                    direction = snk_joint_get_direction(&next_joint);
                     joint_i++;
                 }
             }
@@ -54,10 +54,12 @@ snk_rc_type
 snk_snake_advance(snk_snake *snake, snk_direction next_direction)
 {
     snk_snake snake_copy = *snake;
-    snk_joint joint = {snake_copy.head_position, snk_direction_reverse(snake_copy.head_direction)};
+    snk_joint joint;
     uint32_t n_used_joints;
     uint32_t i;
     snk_rc_type rc;
+
+    snk_joint_init(&snake_copy.head_position, snk_direction_reverse(snake_copy.head_direction), &joint);
 
     if (snake_copy.length > 2 &&
         snk_direction_reverse(snake_copy.head_direction) == next_direction)
@@ -67,7 +69,7 @@ snk_snake_advance(snk_snake *snake, snk_direction next_direction)
 
     if (snake_copy.head_direction != next_direction)
     {
-        rc = snk_joint_add(&snake_copy.joints, &joint);
+        rc = snk_joint_buffer_add(&snake_copy.joints, &joint);
         if (rc != SNK_RC_SUCCESS)
             return rc;
     }
@@ -84,9 +86,9 @@ snk_snake_advance(snk_snake *snake, snk_direction next_direction)
     if (rc != SNK_RC_SUCCESS)
         return rc;
 
-    for (i = n_used_joints; i < snk_joint_size(&snake_copy.joints); i++)
+    for (i = n_used_joints; i < snk_joint_buffer_size(&snake_copy.joints); i++)
     {
-        rc = snk_joint_del(&snake_copy.joints);
+        rc = snk_joint_buffer_del(&snake_copy.joints);
         if (rc != SNK_RC_SUCCESS)
             return rc;
     }

@@ -2,6 +2,24 @@
 #include "snk_util.h"
 
 void
+snk_joint_init(const snk_position *position, snk_direction direction, snk_joint *joint)
+{
+    joint->position = *position;
+    joint->direction = direction;
+}
+
+const snk_position *
+snk_joint_get_position(const snk_joint *joint)
+{
+    return &joint->position;
+}
+
+snk_direction snk_joint_get_direction(const snk_joint *joint)
+{
+    return joint->direction;
+}
+
+void
 snk_joint_buffer_init(snk_joint_buffer *buffer) {
     buffer->first_joint = 0;
     buffer->n_joints = 0;
@@ -15,7 +33,7 @@ get_index_in_buffer(const snk_joint_buffer *buffer, uint32_t i) {
 }
 
 snk_rc_type
-snk_joint_get(const snk_joint_buffer *buffer, uint32_t i, snk_joint *joint) {
+snk_joint_buffer_get(const snk_joint_buffer *buffer, uint32_t i, snk_joint *joint) {
     uint32_t index;
 
     if (i >= buffer->n_joints)
@@ -28,7 +46,7 @@ snk_joint_get(const snk_joint_buffer *buffer, uint32_t i, snk_joint *joint) {
 }
 
 snk_rc_type
-snk_joint_add(snk_joint_buffer *buffer, snk_joint *joint) {
+snk_joint_buffer_add(snk_joint_buffer *buffer, snk_joint *joint) {
     uint32_t index;
 
     if (buffer->n_joints + 1U > SNK_ARRAY_LEN(buffer->joints))
@@ -43,7 +61,7 @@ snk_joint_add(snk_joint_buffer *buffer, snk_joint *joint) {
 }
 
 snk_rc_type
-snk_joint_del(snk_joint_buffer *buffer) {
+snk_joint_buffer_del(snk_joint_buffer *buffer) {
     if (buffer->n_joints == 0)
         return SNK_RC_INVALID;
 
@@ -53,7 +71,7 @@ snk_joint_del(snk_joint_buffer *buffer) {
 }
 
 uint32_t
-snk_joint_size(const snk_joint_buffer *buffer)
+snk_joint_buffer_size(const snk_joint_buffer *buffer)
 {
     return buffer->n_joints;
 }
