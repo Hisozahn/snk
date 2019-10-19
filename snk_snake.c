@@ -1,6 +1,27 @@
 #include "snk_snake.h"
 #include "snk.h"
 
+void
+snk_snake_init(const snk_position *pos, snk_direction direction, const snk_joint_buffer *joints,
+               uint32_t length, uint32_t pending_length, snk_snake *snake)
+{
+    if (joints != NULL)
+        snake->joints = *joints;
+    else
+        snk_joint_buffer_init(&snake->joints);
+
+    snake->head_direction = direction;
+    snake->head_position = *pos;
+    snake->length = length;
+    snake->pending_length = pending_length;
+}
+
+const snk_position *
+snk_snake_get_head_position(const snk_snake *snake)
+{
+    return &snake->head_position;
+}
+
 static snk_rc_type
 snk_snake_walk_impl(const snk_snake *snake, snk_snake_walk_cb cb, void *cb_data, uint32_t *n_used_joints)
 {

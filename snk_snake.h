@@ -19,6 +19,9 @@ typedef struct snk_snake {
 
 typedef snk_rc_type (*snk_snake_walk_cb)(const snk_position *pos, void *data);
 
+void snk_snake_init(const snk_position *pos, snk_direction direction, const snk_joint_buffer *joints,
+                    uint32_t length, uint32_t pending_length, snk_snake *snake);
+const snk_position *snk_snake_get_head_position(const snk_snake *snake);
 snk_rc_type snk_snake_walk(const snk_snake *snake, snk_snake_walk_cb cb, void *cb_data);
 snk_rc_type snk_snake_advance(snk_snake *snake, snk_direction next_direction);
 snk_rc_type snk_snake_get_positions(const snk_snake *snake, size_t *n_positions, snk_position *positions);

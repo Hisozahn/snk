@@ -149,21 +149,6 @@ snk_check_snake(const snk_snake *snake, const snk_field *field)
     return snk_snake_walk(snake, snk_check_snake_cb, &data);
 }
 
-void
-snk_snake_init(const snk_position *pos, snk_direction direction, const snk_joint_buffer *joints,
-               uint32_t length, uint32_t pending_length, snk_snake *snake)
-{
-    if (joints != NULL)
-        snake->joints = *joints;
-    else
-        snk_joint_buffer_init(&snake->joints);
-
-    snake->head_direction = direction;
-    snake->head_position = *pos;
-    snake->length = length;
-    snake->pending_length = pending_length;
-}
-
 snk_rc_type
 snk_create(const snk_field *field, const snk_position *start_position,
            snk_direction start_direction, uint32_t start_length, snk_process *process)
@@ -203,7 +188,8 @@ snk_snake_advance_in_field(snk_snake *snake, snk_direction next_direction, snk_f
     if (rc != SNK_RC_SUCCESS)
         return (rc == SNK_RC_INVALID ? SNK_RC_OVER : rc);
 
-    if (field->n_food > 0 && snk_position_compare(&snake_copy.head_position, &field->food) == 0)
+    if (field->n_food > 0 &&
+        snk_position_compare(snk_snake_get_head_position(&snake_copy), &field->food) == 0)
     {
         snk_snake_add_pending_length(&snake_copy, 1);
         field->n_food = 0;
