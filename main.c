@@ -16,9 +16,9 @@ do                                                                  \
 } while (0)
 
 static void
-draw(const uint8_t *draw_data, uint8_t width, uint8_t height)
+draw(const uint8_t *draw_data, uint32_t width, uint32_t height)
 {
-    uint8_t i;
+    uint32_t i;
     for (i = 0; i < height; i++)
     {
         printf("%.*s\n", width, &draw_data[i * width]);

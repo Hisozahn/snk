@@ -8,16 +8,16 @@ snk_joint_buffer_init(snk_joint_buffer *buffer) {
     buffer->n_joints = 0;
 }
 
-static uint8_t
-get_index_in_buffer(const snk_joint_buffer *buffer, uint8_t i) {
-    uint8_t buf_len = SNK_ARRAY_LEN(buffer->joints);
+static uint32_t
+get_index_in_buffer(const snk_joint_buffer *buffer, uint32_t i) {
+    uint32_t buf_len = SNK_ARRAY_LEN(buffer->joints);
 
     return (buffer->first_joint + i) % buf_len;
 }
 
 int
-snk_joint_get(const snk_joint_buffer *buffer, uint8_t i, snk_joint *joint) {
-    uint8_t index;
+snk_joint_get(const snk_joint_buffer *buffer, uint32_t i, snk_joint *joint) {
+    uint32_t index;
 
     //printf("joint_get: %u\n", i);
     if (i >= buffer->n_joints)
@@ -31,12 +31,12 @@ snk_joint_get(const snk_joint_buffer *buffer, uint8_t i, snk_joint *joint) {
 
 int
 snk_joint_add(snk_joint_buffer *buffer, snk_joint *joint) {
-    uint8_t index;
+    uint32_t index;
 
     if (buffer->n_joints + 1U > SNK_ARRAY_LEN(buffer->joints))
         return EPERM;
 
-    index = get_index_in_buffer(buffer, (uint8_t)-1);
+    index = get_index_in_buffer(buffer, (uint32_t)-1);
     //printf("index: %u\n", index);
     buffer->joints[index] = *joint;
     buffer->n_joints++;
@@ -55,7 +55,7 @@ snk_joint_del(snk_joint_buffer *buffer) {
     return 0;
 }
 
-uint8_t
+uint32_t
 snk_joint_size(const snk_joint_buffer *buffer)
 {
     return buffer->n_joints;

@@ -4,13 +4,13 @@
 #include "snk.h"
 
 static int
-snk_snake_walk_impl(const snk_snake *snake, snk_snake_walk_cb cb, void *cb_data, uint8_t *n_used_joints)
+snk_snake_walk_impl(const snk_snake *snake, snk_snake_walk_cb cb, void *cb_data, uint32_t *n_used_joints)
 {
     snk_direction direction = snk_direction_reverse(snake->head_direction);
     snk_position pos = snake->head_position;
     snk_joint next_joint;
-    uint8_t joint_i;
-    uint16_t i;
+    uint32_t joint_i;
+    uint32_t i;
     int rc;
 
     for (i = 0, joint_i = 0; i < snake->length; i++)
@@ -60,8 +60,8 @@ snk_snake_advance(snk_snake *snake, snk_direction next_direction)
 {
     snk_snake snake_copy = *snake;
     snk_joint joint = {snake_copy.head_position, snk_direction_reverse(snake_copy.head_direction)};
-    uint8_t n_used_joints;
-    uint8_t i;
+    uint32_t n_used_joints;
+    uint32_t i;
     int rc;
 
     if (snake_copy.length > 2 &&
@@ -138,7 +138,7 @@ snk_snake_get_positions(const snk_snake *snake, size_t *n_positions, snk_positio
 }
 
 void
-snk_snake_add_pending_length(snk_snake *snake, uint8_t length)
+snk_snake_add_pending_length(snk_snake *snake, uint32_t length)
 {
     snake->pending_length += length;
 }

@@ -20,9 +20,9 @@ typedef enum snk_direction {
 /** Position on a field */
 typedef struct snk_position {
     /** Horizontal coordinate, starting from left border */
-    uint8_t x;
+    uint32_t x;
     /** Vertical coordinate, starting from upper border */
-    uint8_t y;
+    uint32_t y;
 } snk_position;
 
 static inline snk_direction
