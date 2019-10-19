@@ -37,6 +37,13 @@ typedef struct snk_process {
     snk_direction next_direction;
 } snk_process;
 
+typedef enum snk_position_type {
+    SNK_POSITION_EMPTY,
+    SNK_POSITION_OBSTACLE,
+    SNK_POSITION_SNAKE,
+    SNK_POSITION_FOOD,
+} snk_position_type;
+
 int snk_position_advance(snk_position *position, snk_direction direction);
 int snk_position_compare(const snk_position *a, const snk_position *b);
 

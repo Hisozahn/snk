@@ -25,6 +25,35 @@ draw(const uint8_t *draw_data, uint32_t width, uint32_t height)
     }
 }
 
+static int
+draw_data_convert(uint8_t *draw_data, size_t size)
+{
+    size_t i;
+
+    for (i = 0; i < size; i++)
+    {
+        switch (draw_data[i])
+        {
+            case SNK_POSITION_EMPTY:
+                draw_data[i] = '_';
+                break;
+            case SNK_POSITION_OBSTACLE:
+                draw_data[i] = '-';
+                break;
+            case SNK_POSITION_FOOD:
+                draw_data[i] = '#';
+                break;
+            case SNK_POSITION_SNAKE:
+                draw_data[i] = 'x';
+                break;
+            default:
+                return EINVAL;
+        }
+    }
+
+    return 0;
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -50,6 +79,8 @@ main(int argc, char *argv[])
         CHECK_RC(snk_next_tick(&process));
 
         CHECK_RC(snk_render(&process, draw_data, sizeof(draw_data)));
+
+        CHECK_RC(draw_data_convert(draw_data, sizeof(draw_data)));
 
         draw(draw_data, process.field.width, process.field.height);
         //Sleep(1000);
