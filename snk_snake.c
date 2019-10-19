@@ -1,5 +1,3 @@
-#include <stdio.h>
-
 #include "snk_snake.h"
 #include "snk.h"
 
@@ -15,7 +13,6 @@ snk_snake_walk_impl(const snk_snake *snake, snk_snake_walk_cb cb, void *cb_data,
 
     for (i = 0, joint_i = 0; i < snake->length; i++)
     {
-        //printf("n_joints: %u\n", snake->joints.n_joints);
         if (snk_joint_size(&snake->joints) > 0)
         {
             rc = snk_joint_get(&snake->joints, joint_i, &next_joint);
@@ -31,7 +28,6 @@ snk_snake_walk_impl(const snk_snake *snake, snk_snake_walk_cb cb, void *cb_data,
                 return rc;
         }
 
-        //printf("%s: CALLBACK pos x: %u, y: %u\n", __FUNCTION__, pos.x, pos.y);
         if (cb != NULL)
         {
             rc = cb(&pos, cb_data);
@@ -39,7 +35,6 @@ snk_snake_walk_impl(const snk_snake *snake, snk_snake_walk_cb cb, void *cb_data,
                 return rc;
         }
 
-        //printf("%s: pos x: %u, y: %u, len: %u\n", __FUNCTION__, pos.x, pos.y, snake->length);
         snk_position_advance(&pos, direction);
     }
 
@@ -96,7 +91,6 @@ snk_snake_advance(snk_snake *snake, snk_direction next_direction)
             return rc;
     }
 
-    //printf("N_USED_JOINTS: %u\n", n_used_joints);
     *snake = snake_copy;
 
     return 0;

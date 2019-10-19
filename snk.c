@@ -4,7 +4,6 @@
 int
 snk_position_advance(snk_position *position, snk_direction direction)
 {
-    //printf("pos_advance: %d\n", direction);
     switch (direction)
     {
         case SNK_LEFT:

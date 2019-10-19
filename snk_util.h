@@ -1,8 +1,6 @@
 #ifndef __SNK_UTIL_H__
 #define __SNK_UTIL_H__
 
-#include <stdio.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
