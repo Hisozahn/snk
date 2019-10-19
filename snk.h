@@ -28,6 +28,7 @@ typedef struct snk_field {
     uint8_t n_obstacles;
     snk_position food;
     uint8_t n_food;
+    uint32_t rand_seed;
 } snk_field;
 
 typedef enum snk_state {
@@ -46,7 +47,8 @@ typedef struct snk_process {
 int snk_position_advance(snk_position *position, snk_direction direction);
 int snk_position_compare(const snk_position *a, const snk_position *b);
 
-int snk_create_field(uint8_t width, uint8_t height, uint8_t n_obstacles, const snk_field_obstacle *obstacles, snk_field *field);
+int snk_create_field(uint8_t width, uint8_t height, uint8_t n_obstacles, const snk_field_obstacle *obstacles,
+                     uint32_t rand_seed,  snk_field *field);
 int snk_create(const snk_field *field, const snk_position *start_position,
                snk_direction start_direction, uint16_t start_length, snk_process *process);
 int snk_start(snk_process *process);

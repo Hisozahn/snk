@@ -86,7 +86,8 @@ snk_check_field_obstacle_possible(const snk_field_obstacle *obstacle, uint8_t fi
 }
 
 int
-snk_create_field(uint8_t width, uint8_t height, uint8_t n_obstacles, const snk_field_obstacle *obstacles, snk_field *field)
+snk_create_field(uint8_t width, uint8_t height, uint8_t n_obstacles, const snk_field_obstacle *obstacles,
+                 uint32_t rand_seed, snk_field *field)
 {
     size_t i;
     int rc;
@@ -108,6 +109,7 @@ snk_create_field(uint8_t width, uint8_t height, uint8_t n_obstacles, const snk_f
     field->width = width;
     field->n_obstacles = n_obstacles;
     field->n_food = 0;
+    field->rand_seed = rand_seed;
 
     return 0;
 }
@@ -232,11 +234,18 @@ snk_snake_advance_in_field(snk_snake *snake, snk_direction next_direction, snk_f
 static int
 snk_generate_food(const snk_snake *snake, snk_field *field)
 {
-    snk_position pos = {3, 3};
+    snk_position pos;
     snk_position snk_positions[64];
     size_t n_snk_positions = SNK_ARRAY_LEN(snk_positions);
+    uint32_t rand = snk_rand(&field->rand_seed);
     size_t i;
     int rc;
+
+    if (field->n_food > 0)
+        return 0;
+
+    pos.x = rand % field->width;
+    pos.y = rand % field->height;
 
     rc = snk_check_position_available(&pos, field);
     if (rc != 0)

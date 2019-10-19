@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <windows.h>
+#include <time.h>
 #include "snk.h"
 #include "snk_util.h"
 
@@ -39,7 +40,8 @@ main(int argc, char *argv[])
     (void)argc;
     (void)argv;
 
-    CHECK_RC(snk_create_field(15, 10, SNK_ARRAY_LEN(obstacles), obstacles, &field));
+    CHECK_RC(snk_create_field(15, 10, SNK_ARRAY_LEN(obstacles), obstacles, time(NULL),
+            &field));
 
     CHECK_RC(snk_create(&field, &start_position, SNK_RIGHT, 5, &process));
 
