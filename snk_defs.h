@@ -25,14 +25,6 @@ typedef enum snk_direction {
     SNK_DIRECTION_INVALID,
 } snk_direction;
 
-/** Position on a field */
-typedef struct snk_position {
-    /** Horizontal coordinate, starting from left border */
-    uint32_t x;
-    /** Vertical coordinate, starting from upper border */
-    uint32_t y;
-} snk_position;
-
 static inline snk_direction
 snk_direction_reverse(snk_direction direction)
 {

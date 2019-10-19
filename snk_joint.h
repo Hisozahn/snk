@@ -2,6 +2,7 @@
 #define __SNK_JOINT_H__
 
 #include "snk_defs.h"
+#include "snk_position.h"
 
 #ifdef __cplusplus
 extern "C" {

@@ -1,5 +1,4 @@
 #include "snk_snake.h"
-#include "snk.h"
 
 void
 snk_snake_init(const snk_position *pos, snk_direction direction, const snk_joint_buffer *joints,

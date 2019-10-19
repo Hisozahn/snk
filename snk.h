@@ -6,6 +6,7 @@
 #include "snk_defs.h"
 #include "snk_snake.h"
 #include "snk_joint.h"
+#include "snk_position.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -42,9 +43,6 @@ typedef enum snk_position_type {
     SNK_POSITION_SNAKE,
     SNK_POSITION_FOOD,
 } snk_position_type;
-
-snk_rc_type snk_position_advance(snk_position *position, snk_direction direction);
-int snk_position_compare(const snk_position *a, const snk_position *b);
 
 snk_rc_type snk_create_field(uint32_t width, uint32_t height, uint32_t n_obstacles, const snk_field_obstacle *obstacles,
                      uint32_t rand_seed,  snk_field *field);
