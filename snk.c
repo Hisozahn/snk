@@ -6,16 +6,16 @@ snk_position_advance(snk_position *position, snk_direction direction)
 {
     switch (direction)
     {
-        case SNK_LEFT:
+        case SNK_DIRECTION_LEFT:
             position->x--;
             break;
-        case SNK_RIGHT:
+        case SNK_DIRECTION_RIGHT:
             position->x++;
             break;
-        case SNK_UP:
+        case SNK_DIRECTION_UP:
             position->y--;
             break;
-        case SNK_DOWN:
+        case SNK_DIRECTION_DOWN:
             position->y++;
             break;
         default:
@@ -324,11 +324,11 @@ snk_render_field_obstacle(const snk_field *field, const snk_field_obstacle *obst
             if (rc != 0)
                 return rc;
 
-            snk_position_advance(&pos, SNK_RIGHT);
+            snk_position_advance(&pos, SNK_DIRECTION_RIGHT);
         }
 
         pos = row_start;
-        snk_position_advance(&pos, SNK_DOWN);
+        snk_position_advance(&pos, SNK_DIRECTION_DOWN);
     }
 
     return 0;

@@ -72,7 +72,7 @@ main(int argc, char *argv[])
     CHECK_RC(snk_create_field(15, 10, SNK_ARRAY_LEN(obstacles), obstacles, (uint32_t)time(NULL),
             &field));
 
-    CHECK_RC(snk_create(&field, &start_position, SNK_RIGHT, 5, &process));
+    CHECK_RC(snk_create(&field, &start_position, SNK_DIRECTION_RIGHT, 5, &process));
 
     for (i = 0; i < 100; i++)
     {
@@ -93,16 +93,16 @@ main(int argc, char *argv[])
             switch (c)
             {
                 case 'a':
-                    new_direction = SNK_LEFT;
+                    new_direction = SNK_DIRECTION_LEFT;
                     break;
                 case 'd':
-                    new_direction = SNK_RIGHT;
+                    new_direction = SNK_DIRECTION_RIGHT;
                     break;
                 case 'w':
-                    new_direction = SNK_UP;
+                    new_direction = SNK_DIRECTION_UP;
                     break;
                 case 's':
-                    new_direction = SNK_DOWN;
+                    new_direction = SNK_DIRECTION_DOWN;
                     break;
                 default:
                     goto retry;

@@ -10,11 +10,11 @@ extern "C" {
 
 /** Direction of an object */
 typedef enum snk_direction {
-    SNK_LEFT,
-    SNK_UP,
-    SNK_RIGHT,
-    SNK_DOWN,
-    SNK_INVALID,
+    SNK_DIRECTION_LEFT,
+    SNK_DIRECTION_UP,
+    SNK_DIRECTION_RIGHT,
+    SNK_DIRECTION_DOWN,
+    SNK_DIRECTION_INVALID,
 } snk_direction;
 
 /** Position on a field */
@@ -30,16 +30,16 @@ snk_direction_reverse(snk_direction direction)
 {
     switch (direction)
     {
-        case SNK_RIGHT:
-            return SNK_LEFT;
-        case SNK_LEFT:
-            return SNK_RIGHT;
-        case SNK_DOWN:
-            return SNK_UP;
-        case SNK_UP:
-            return SNK_DOWN;
+        case SNK_DIRECTION_RIGHT:
+            return SNK_DIRECTION_LEFT;
+        case SNK_DIRECTION_LEFT:
+            return SNK_DIRECTION_RIGHT;
+        case SNK_DIRECTION_DOWN:
+            return SNK_DIRECTION_UP;
+        case SNK_DIRECTION_UP:
+            return SNK_DIRECTION_DOWN;
         default:
-            return SNK_INVALID;
+            return SNK_DIRECTION_INVALID;
     }
 }
 
