@@ -206,15 +206,14 @@ snk_generate_food(const snk_snake *snake, snk_field *field)
     snk_position pos;
     snk_position snk_positions[64];
     size_t n_snk_positions = SNK_ARRAY_LEN(snk_positions);
-    uint32_t rand = snk_rand(&field->rand_seed);
     size_t i;
     snk_rc_type rc;
 
     if (field->n_food > 0)
         return SNK_RC_SUCCESS;
 
-    pos.x = rand % field->width;
-    pos.y = rand % field->height;
+    pos.x = snk_rand(&field->rand_seed) % field->width;
+    pos.y = snk_rand(&field->rand_seed) % field->height;
 
     rc = snk_check_position_available(&pos, field);
     if (rc != SNK_RC_SUCCESS)
