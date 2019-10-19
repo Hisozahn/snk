@@ -17,11 +17,11 @@ typedef struct snk_snake {
     uint32_t pending_length;
 } snk_snake;
 
-typedef int (*snk_snake_walk_cb)(const snk_position *pos, void *data);
+typedef snk_rc_type (*snk_snake_walk_cb)(const snk_position *pos, void *data);
 
-int snk_snake_walk(const snk_snake *snake, snk_snake_walk_cb cb, void *cb_data);
-int snk_snake_advance(snk_snake *snake, snk_direction next_direction);
-int snk_snake_get_positions(const snk_snake *snake, size_t *n_positions, snk_position *positions);
+snk_rc_type snk_snake_walk(const snk_snake *snake, snk_snake_walk_cb cb, void *cb_data);
+snk_rc_type snk_snake_advance(snk_snake *snake, snk_direction next_direction);
+snk_rc_type snk_snake_get_positions(const snk_snake *snake, size_t *n_positions, snk_position *positions);
 void snk_snake_add_pending_length(snk_snake *snake, uint32_t length);
 
 #ifdef __cplusplus

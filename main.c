@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <windows.h>
+#include <errno.h>
 #include <time.h>
 #include "snk.h"
 #include "snk_util.h"

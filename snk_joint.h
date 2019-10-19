@@ -22,10 +22,10 @@ typedef struct snk_joint_buffer {
 } snk_joint_buffer;
 
 void snk_joint_buffer_init(snk_joint_buffer *buffer);
-int snk_joint_get(const snk_joint_buffer *buffer, uint32_t i, snk_joint *joint);
-int snk_joint_add(snk_joint_buffer *buffer, snk_joint *joint);
+snk_rc_type snk_joint_get(const snk_joint_buffer *buffer, uint32_t i, snk_joint *joint);
+snk_rc_type snk_joint_add(snk_joint_buffer *buffer, snk_joint *joint);
 uint32_t snk_joint_size(const snk_joint_buffer *buffer);
-int snk_joint_del(snk_joint_buffer *buffer);
+snk_rc_type snk_joint_del(snk_joint_buffer *buffer);
 
 #ifdef __cplusplus
 } /* extern "C" */

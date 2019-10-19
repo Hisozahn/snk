@@ -1,4 +1,3 @@
-#include <errno.h>
 #include "snk_joint.h"
 #include "snk_util.h"
 
@@ -15,42 +14,42 @@ get_index_in_buffer(const snk_joint_buffer *buffer, uint32_t i) {
     return (buffer->first_joint + i) % buf_len;
 }
 
-int
+snk_rc_type
 snk_joint_get(const snk_joint_buffer *buffer, uint32_t i, snk_joint *joint) {
     uint32_t index;
 
     if (i >= buffer->n_joints)
-        return ENOENT;
+        return SNK_RC_NOENT;
 
     index = get_index_in_buffer(buffer, i);
     *joint = buffer->joints[index];
 
-    return 0;
+    return SNK_RC_SUCCESS;
 }
 
-int
+snk_rc_type
 snk_joint_add(snk_joint_buffer *buffer, snk_joint *joint) {
     uint32_t index;
 
     if (buffer->n_joints + 1U > SNK_ARRAY_LEN(buffer->joints))
-        return EPERM;
+        return SNK_RC_NOBUF;
 
     index = get_index_in_buffer(buffer, (uint32_t)-1);
     buffer->joints[index] = *joint;
     buffer->n_joints++;
     buffer->first_joint = index;
 
-    return 0;
+    return SNK_RC_SUCCESS;
 }
 
-int
+snk_rc_type
 snk_joint_del(snk_joint_buffer *buffer) {
     if (buffer->n_joints == 0)
-        return EINVAL;
+        return SNK_RC_INVALID;
 
     buffer->n_joints--;
 
-    return 0;
+    return SNK_RC_SUCCESS;
 }
 
 uint32_t

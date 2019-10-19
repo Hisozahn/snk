@@ -1,7 +1,7 @@
 #include "snk_snake.h"
 #include "snk.h"
 
-static int
+static snk_rc_type
 snk_snake_walk_impl(const snk_snake *snake, snk_snake_walk_cb cb, void *cb_data, uint32_t *n_used_joints)
 {
     snk_direction direction = snk_direction_reverse(snake->head_direction);
@@ -9,14 +9,14 @@ snk_snake_walk_impl(const snk_snake *snake, snk_snake_walk_cb cb, void *cb_data,
     snk_joint next_joint;
     uint32_t joint_i;
     uint32_t i;
-    int rc;
+    snk_rc_type rc;
 
     for (i = 0, joint_i = 0; i < snake->length; i++)
     {
         if (snk_joint_size(&snake->joints) > 0)
         {
             rc = snk_joint_get(&snake->joints, joint_i, &next_joint);
-            if (rc == 0)
+            if (rc == SNK_RC_SUCCESS)
             {
                 if (snk_position_compare(&pos, &next_joint.position) == 0)
                 {
@@ -24,14 +24,14 @@ snk_snake_walk_impl(const snk_snake *snake, snk_snake_walk_cb cb, void *cb_data,
                     joint_i++;
                 }
             }
-            else if (rc != ENOENT)
+            else if (rc != SNK_RC_NOENT)
                 return rc;
         }
 
         if (cb != NULL)
         {
             rc = cb(&pos, cb_data);
-            if (rc != 0)
+            if (rc != SNK_RC_SUCCESS)
                 return rc;
         }
 
@@ -41,34 +41,34 @@ snk_snake_walk_impl(const snk_snake *snake, snk_snake_walk_cb cb, void *cb_data,
     if (n_used_joints != NULL)
         *n_used_joints = joint_i;
 
-    return 0;
+    return SNK_RC_SUCCESS;
 }
 
-int
+snk_rc_type
 snk_snake_walk(const snk_snake *snake, snk_snake_walk_cb cb, void *cb_data)
 {
     return snk_snake_walk_impl(snake, cb, cb_data, NULL);
 }
 
-int
+snk_rc_type
 snk_snake_advance(snk_snake *snake, snk_direction next_direction)
 {
     snk_snake snake_copy = *snake;
     snk_joint joint = {snake_copy.head_position, snk_direction_reverse(snake_copy.head_direction)};
     uint32_t n_used_joints;
     uint32_t i;
-    int rc;
+    snk_rc_type rc;
 
     if (snake_copy.length > 2 &&
         snk_direction_reverse(snake_copy.head_direction) == next_direction)
     {
-        return EPERM;
+        return SNK_RC_INVALID;
     }
 
     if (snake_copy.head_direction != next_direction)
     {
         rc = snk_joint_add(&snake_copy.joints, &joint);
-        if (rc != 0)
+        if (rc != SNK_RC_SUCCESS)
             return rc;
     }
 
@@ -81,19 +81,19 @@ snk_snake_advance(snk_snake *snake, snk_direction next_direction)
     }
 
     rc = snk_snake_walk_impl(&snake_copy, NULL, NULL, &n_used_joints);
-    if (rc != 0)
+    if (rc != SNK_RC_SUCCESS)
         return rc;
 
     for (i = n_used_joints; i < snk_joint_size(&snake_copy.joints); i++)
     {
         rc = snk_joint_del(&snake_copy.joints);
-        if (rc != 0)
+        if (rc != SNK_RC_SUCCESS)
             return rc;
     }
 
     *snake = snake_copy;
 
-    return 0;
+    return SNK_RC_SUCCESS;
 }
 
 struct snk_snake_positions_data {
@@ -102,28 +102,28 @@ struct snk_snake_positions_data {
     size_t n_positions_out;
 };
 
-static int
+static snk_rc_type
 snk_snake_get_positions_cb(const snk_position *pos, void *data)
 {
     struct snk_snake_positions_data *pos_data = data;
 
     if (pos_data->n_positions_out >= pos_data->n_positions_in)
-        return EPERM;
+        return SNK_RC_NOBUF;
 
     pos_data->positions[pos_data->n_positions_out] = *pos;
     pos_data->n_positions_out++;
 
-    return 0;
+    return SNK_RC_SUCCESS;
 }
 
-int
+snk_rc_type
 snk_snake_get_positions(const snk_snake *snake, size_t *n_positions, snk_position *positions)
 {
     struct snk_snake_positions_data data = {positions, *n_positions, 0};
-    int rc;
+    snk_rc_type rc;
 
     rc = snk_snake_walk(snake, snk_snake_get_positions_cb, &data);
-    if (rc != 0)
+    if (rc != SNK_RC_SUCCESS)
         return rc;
 
     *n_positions = data.n_positions_out;

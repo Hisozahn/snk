@@ -8,6 +8,14 @@
 extern "C" {
 #endif
 
+typedef enum snk_rc_type {
+    SNK_RC_SUCCESS,
+    SNK_RC_OVER,
+    SNK_RC_INVALID,
+    SNK_RC_NOBUF,
+    SNK_RC_NOENT,
+} snk_rc_type;
+
 /** Direction of an object */
 typedef enum snk_direction {
     SNK_DIRECTION_LEFT,

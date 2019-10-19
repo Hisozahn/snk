@@ -3,7 +3,6 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#include <errno.h>
 #include "snk_defs.h"
 #include "snk_snake.h"
 #include "snk_joint.h"
@@ -44,17 +43,17 @@ typedef enum snk_position_type {
     SNK_POSITION_FOOD,
 } snk_position_type;
 
-int snk_position_advance(snk_position *position, snk_direction direction);
+snk_rc_type snk_position_advance(snk_position *position, snk_direction direction);
 int snk_position_compare(const snk_position *a, const snk_position *b);
 
-int snk_create_field(uint32_t width, uint32_t height, uint32_t n_obstacles, const snk_field_obstacle *obstacles,
+snk_rc_type snk_create_field(uint32_t width, uint32_t height, uint32_t n_obstacles, const snk_field_obstacle *obstacles,
                      uint32_t rand_seed,  snk_field *field);
-int snk_create(const snk_field *field, const snk_position *start_position,
+snk_rc_type snk_create(const snk_field *field, const snk_position *start_position,
                snk_direction start_direction, uint32_t start_length, snk_process *process);
-int snk_next_tick(snk_process *process);
-int snk_choose_direction(snk_process *process, snk_direction direction);
-int snk_render(const snk_process *process, uint8_t *data, size_t data_size);
-int snk_destroy(snk_process *process);
+snk_rc_type snk_next_tick(snk_process *process);
+snk_rc_type snk_choose_direction(snk_process *process, snk_direction direction);
+snk_rc_type snk_render(const snk_process *process, uint8_t *data, size_t data_size);
+snk_rc_type snk_destroy(snk_process *process);
 
 #ifdef __cplusplus
 } /* extern "C" */
