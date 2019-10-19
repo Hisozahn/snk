@@ -45,8 +45,6 @@ main(int argc, char *argv[])
 
     CHECK_RC(snk_create(&field, &start_position, SNK_RIGHT, 5, &process));
 
-    CHECK_RC(snk_start(&process));
-
     for (i = 0; i < 100; i++)
     {
         CHECK_RC(snk_next_tick(&process));

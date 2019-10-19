@@ -31,16 +31,9 @@ typedef struct snk_field {
     uint32_t rand_seed;
 } snk_field;
 
-typedef enum snk_state {
-    SNK_STATE_READY,
-    SNK_STATE_RUNNING,
-} snk_state;
-
-
 typedef struct snk_process {
     snk_field field;
     snk_snake snake;
-    snk_state state;
     snk_direction next_direction;
 } snk_process;
 
@@ -51,7 +44,6 @@ int snk_create_field(uint8_t width, uint8_t height, uint8_t n_obstacles, const s
                      uint32_t rand_seed,  snk_field *field);
 int snk_create(const snk_field *field, const snk_position *start_position,
                snk_direction start_direction, uint16_t start_length, snk_process *process);
-int snk_start(snk_process *process);
 int snk_next_tick(snk_process *process);
 int snk_choose_direction(snk_process *process, snk_direction direction);
 int snk_render(const snk_process *process, uint8_t *data, size_t data_size);

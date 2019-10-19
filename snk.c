@@ -184,26 +184,11 @@ snk_create(const snk_field *field, const snk_position *start_position,
     if (rc != 0)
         return rc;
 
-    result.state = SNK_STATE_READY;
     result.next_direction = start_direction;
 
     *process = result;
 
     return 0;
-}
-
-int
-snk_start(snk_process *process)
-{
-    switch (process->state)
-    {
-        case SNK_STATE_READY:
-            process->state = SNK_STATE_RUNNING;
-            return 0;
-        case SNK_STATE_RUNNING:
-        default:
-            return EINVAL;
-    }
 }
 
 static int
@@ -274,15 +259,6 @@ int
 snk_next_tick(snk_process *process)
 {
     int rc;
-
-    switch (process->state)
-    {
-        case SNK_STATE_RUNNING:
-            break;
-        case SNK_STATE_READY:
-        default:
-            return EINVAL;
-    }
 
     rc = snk_snake_advance_in_field(&process->snake, process->next_direction, &process->field);
     if (rc != 0)
