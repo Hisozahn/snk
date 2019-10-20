@@ -138,6 +138,7 @@ snk_create(const snk_field *field, const snk_position *start_position,
         return rc;
 
     result.next_direction = start_direction;
+    result.state = SNK_STATE_RUNNING;
 
     *process = result;
 
@@ -213,9 +214,24 @@ snk_next_tick(snk_process *process)
 {
     snk_rc_type rc;
 
+    switch (process->state)
+    {
+        case SNK_STATE_RUNNING:
+            break;
+        case SNK_STATE_OVER:
+            return SNK_RC_OVER;
+        default:
+            return SNK_RC_INVALID;
+    }
+
     rc = snk_snake_advance_in_field(&process->snake, process->next_direction, &process->field);
     if (rc != SNK_RC_SUCCESS)
+    {
+        if (rc == SNK_RC_OVER)
+            process->state = SNK_STATE_OVER;
+
         return rc;
+    }
 
     rc = snk_generate_food(&process->snake, &process->field);
     if (rc != SNK_RC_SUCCESS)
@@ -227,6 +243,16 @@ snk_next_tick(snk_process *process)
 snk_rc_type
 snk_choose_direction(snk_process *process, snk_direction direction)
 {
+    switch (process->state)
+    {
+        case SNK_STATE_RUNNING:
+            break;
+        case SNK_STATE_OVER:
+            return SNK_RC_OVER;
+        default:
+            return SNK_RC_INVALID;
+    }
+
     process->next_direction = direction;
 
     return SNK_RC_SUCCESS;

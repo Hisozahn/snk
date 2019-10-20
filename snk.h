@@ -31,10 +31,16 @@ typedef struct snk_field {
     uint32_t rand_seed;
 } snk_field;
 
+typedef enum snk_state {
+    SNK_STATE_RUNNING,
+    SNK_STATE_OVER,
+} snk_state;
+
 typedef struct snk_process {
     snk_field field;
     snk_snake snake;
     snk_direction next_direction;
+    snk_state state;
 } snk_process;
 
 typedef enum snk_position_type {
