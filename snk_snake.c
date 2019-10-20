@@ -158,3 +158,9 @@ snk_snake_add_pending_length(snk_snake *snake, uint32_t length)
 {
     snake->pending_length += length;
 }
+
+uint32_t
+snk_snake_get_length(const snk_snake *snake)
+{
+    return snake->length;
+}

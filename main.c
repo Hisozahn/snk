@@ -77,7 +77,11 @@ main(int argc, char *argv[])
 
     for (i = 0; i < 100; i++)
     {
+        snk_score score;
+
         CHECK_RC(snk_next_tick(&process));
+        snk_get_score(&process, &score);
+        printf("score: %u\n", score);
 
         CHECK_RC(snk_render(&process, draw_data, sizeof(draw_data)));
 

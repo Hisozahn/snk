@@ -356,3 +356,10 @@ snk_render(const snk_process *process, uint8_t *data, size_t data_size)
 
     return snk_snake_walk(&process->snake, snk_render_cb, &render_data);
 }
+
+snk_rc_type snk_get_score(snk_process *process, snk_score *score)
+{
+    *score = snk_snake_get_length(&process->snake);
+
+    return SNK_RC_SUCCESS;
+}
