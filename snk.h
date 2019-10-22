@@ -100,6 +100,7 @@ snk_rc_type snk_next_tick(snk_process *process);
  * @param[in] direction     New direction
  *
  * @return                  Status code
+ * @retval SNK_RC_INVALID   New direction is invalid
  */
 snk_rc_type snk_choose_direction(snk_process *process, snk_direction direction);
 

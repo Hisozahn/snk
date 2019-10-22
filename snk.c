@@ -253,6 +253,8 @@ snk_choose_direction(snk_process *process, snk_direction direction)
             return SNK_RC_INVALID;
     }
 
+    if (!snk_direction_is_valid(direction))
+        return SNK_RC_INVALID;
     process->next_direction = direction;
 
     return SNK_RC_SUCCESS;

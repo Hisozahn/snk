@@ -26,6 +26,7 @@ typedef enum snk_direction {
     SNK_DIRECTION_RIGHT, /**< Towards positive x coordinate */
     SNK_DIRECTION_DOWN, /**< Towards positive y coordinate */
     SNK_DIRECTION_INVALID, /**< Invalid direction */
+    SNK_DIRECTION_ENUM_VALID_SIZE = SNK_DIRECTION_INVALID, /**< Number of valid enum entries */
 } snk_direction;
 
 /**
@@ -51,6 +52,12 @@ snk_direction_reverse(snk_direction direction)
         default:
             return SNK_DIRECTION_INVALID;
     }
+}
+
+static inline int
+snk_direction_is_valid(snk_direction direction)
+{
+    return (direction < SNK_DIRECTION_ENUM_VALID_SIZE ? 1 : 0);
 }
 
 #ifdef __cplusplus
