@@ -255,7 +255,10 @@ snk_choose_direction(snk_process *process, snk_direction direction)
 
     if (!snk_direction_is_valid(direction))
         return SNK_RC_INVALID;
-    process->next_direction = direction;
+
+    /* Ignore direction if it is opposite to current direction of snake's head */
+    if (direction != snk_direction_reverse(snk_snake_get_head_direction(&process->snake)))
+        process->next_direction = direction;
 
     return SNK_RC_SUCCESS;
 }

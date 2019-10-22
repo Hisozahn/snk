@@ -21,6 +21,12 @@ snk_snake_get_head_position(const snk_snake *snake)
     return &snake->head_position;
 }
 
+snk_direction
+snk_snake_get_head_direction(const snk_snake *snake)
+{
+    return snake->head_direction;
+}
+
 static snk_rc_type
 snk_snake_walk_impl(const snk_snake *snake, snk_snake_walk_cb cb, void *cb_data, uint32_t *n_used_joints)
 {

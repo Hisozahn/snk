@@ -91,6 +91,9 @@ void snk_snake_add_pending_length(snk_snake *snake, uint32_t length);
 /** Snake's length getter */
 uint32_t snk_snake_get_length(const snk_snake *snake);
 
+/** Snake's head direction getter */
+snk_direction snk_snake_get_head_direction(const snk_snake *snake);
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif

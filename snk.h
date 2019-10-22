@@ -95,6 +95,8 @@ snk_rc_type snk_next_tick(snk_process *process);
  * Choose the next direction of a snake's movement.
  *
  * @note The movement is committed only on snk_next_tick.
+ *       On 180 degrees turn the function succeeds,
+ *       but the turn is ignored.
  *
  * @param[in,out] process   Snake process
  * @param[in] direction     New direction
