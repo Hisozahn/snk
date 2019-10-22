@@ -59,15 +59,12 @@ snk_rc_type snk_snake_walk(const snk_snake *snake, snk_snake_walk_cb cb, void *c
  * - Unused joints are deleted;
  * - Length of a snake is increased if pending_length is not 0;
  *
- * @note    The function does not check if the new head's position interferes with snake's body,
- *          only 180 degrees turns are checked.
+ * @note    The function does not check if the new head's position interferes with snake's body
  *
  * @param[in,out] snake         Snake to advance position of
  * @param[in] next_direction    Direction to advance snake towards
  *
  * @return                      Status code
- * @retval SNK_RC_INVALID       Advance towards the direction, opposite to head's
- *                              direction is impossible (concerning snake's length)
  */
 snk_rc_type snk_snake_advance(snk_snake *snake, snk_direction next_direction);
 

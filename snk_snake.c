@@ -81,12 +81,6 @@ snk_snake_advance(snk_snake *snake, snk_direction next_direction)
 
     snk_joint_init(&snake_copy.head_position, snk_direction_reverse(snake_copy.head_direction), &joint);
 
-    if (snake_copy.length > 2 &&
-        snk_direction_reverse(snake_copy.head_direction) == next_direction)
-    {
-        return SNK_RC_INVALID;
-    }
-
     if (snake_copy.head_direction != next_direction)
     {
         rc = snk_joint_buffer_add(&snake_copy.joints, &joint);

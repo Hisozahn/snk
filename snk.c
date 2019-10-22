@@ -153,7 +153,7 @@ snk_snake_advance_in_field(snk_snake *snake, snk_direction next_direction, snk_f
 
     rc = snk_snake_advance(&snake_copy, next_direction);
     if (rc != SNK_RC_SUCCESS)
-        return (rc == SNK_RC_INVALID ? SNK_RC_OVER : rc);
+        return rc;
 
     rc = snk_check_snake(&snake_copy, field);
     if (rc != SNK_RC_SUCCESS)
