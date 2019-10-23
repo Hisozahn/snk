@@ -57,7 +57,7 @@ snk_direction_reverse(snk_direction direction)
 static inline int
 snk_direction_is_valid(snk_direction direction)
 {
-    return (direction < SNK_DIRECTION_ENUM_VALID_SIZE ? 1 : 0);
+    return (direction >= 0 && direction < SNK_DIRECTION_ENUM_VALID_SIZE);
 }
 
 #ifdef __cplusplus
