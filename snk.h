@@ -13,6 +13,7 @@ extern "C" {
 #endif
 
 #define SNK_FIELD_OBSTACLE_MAX 32
+#define SNK_SNAKES_MAX 4
 
 /** Rectangular field obstacle which restricts snake's movement */
 typedef struct snk_field_obstacle {
@@ -40,8 +41,9 @@ typedef enum snk_state {
 /** Process describing the current state of a snake game */
 typedef struct snk_process {
     snk_field field; /**< Field */
-    snk_snake snake; /**< Snake on the field */
-    snk_direction next_direction; /**< Direction for the snake to turn on the next tick */
+    uint32_t n_snakes; /**< Number of snakes on the field */
+    snk_snake snakes[SNK_SNAKES_MAX]; /**< Snakes on the field */
+    snk_direction next_directions[SNK_SNAKES_MAX]; /**< Directions for the snakes to turn on the next tick */
     snk_state state; /**< Process' state */
 } snk_process;
 
@@ -79,8 +81,8 @@ snk_rc_type snk_create_field(uint32_t width, uint32_t height, uint32_t n_obstacl
   *
   * @return                         Status code
   */
-snk_rc_type snk_create(const snk_field *field, const snk_position *start_position,
-               snk_direction start_direction, uint32_t start_length, snk_process *process);
+snk_rc_type snk_create(const snk_field *field, size_t n_snakes, const snk_position *start_position,
+               const snk_direction *start_directions, const uint32_t *start_lengths, snk_process *process);
 
 /**
  * Continue snake process for a step. Should be called once in a fixed time interval.
@@ -104,7 +106,7 @@ snk_rc_type snk_next_tick(snk_process *process);
  * @return                  Status code
  * @retval SNK_RC_INVALID   New direction is invalid
  */
-snk_rc_type snk_choose_direction(snk_process *process, snk_direction direction);
+snk_rc_type snk_choose_direction(snk_process *process, size_t snake_id, snk_direction direction);
 
 /**
  * Get current score of a snake process.

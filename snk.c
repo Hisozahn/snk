@@ -112,32 +112,51 @@ snk_check_snake_cb(const snk_position *pos, void *data)
 }
 
 static snk_rc_type
-snk_check_snake(const snk_snake *snake, const snk_field *field)
+snk_check_snakes(size_t n_snakes, const snk_snake *snakes, const snk_field *field)
 {
     struct snk_check_snake_data data = {field, {0}, 0};
+    snk_rc_type rc = SNK_RC_SUCCESS;
+    size_t i;
 
-    return snk_snake_walk(snake, snk_check_snake_cb, &data);
+    for (i = 0; i < n_snakes; i++)
+    {
+        if (rc == SNK_RC_SUCCESS)
+            rc = snk_snake_walk(&snakes[i], snk_check_snake_cb, &data);
+    }
+
+    return rc;
 }
 
 snk_rc_type
-snk_create(const snk_field *field, const snk_position *start_position,
-           snk_direction start_direction, uint32_t start_length, snk_process *process)
+snk_create(const snk_field *field, size_t n_snakes, const snk_position *start_position,
+           const snk_direction *start_directions, const uint32_t *start_lengths, snk_process *process)
 {
     snk_process result;
     snk_rc_type rc;
+    size_t i;
 
-    if (start_length == 0)
+    if (n_snakes > SNK_ARRAY_LEN(result.snakes))
         return SNK_RC_INVALID;
+
+    for (i = 0; i < n_snakes; i++)
+    {
+        if (start_lengths[i] == 0)
+            return SNK_RC_INVALID;
+    }
 
     result.field = *field;
 
-    snk_snake_init(start_position, start_direction, NULL, start_length, 0, &result.snake);
+    for (i = 0; i < n_snakes; i++)
+    {
+        snk_snake_init(&start_position[i], start_directions[i], NULL, start_lengths[i], 0, &result.snakes[i]);
+        result.next_directions[i] = start_directions[i];
+    }
 
-    rc = snk_check_snake(&result.snake, &result.field);
+    rc = snk_check_snakes(n_snakes, result.snakes, &result.field);
     if (rc != SNK_RC_SUCCESS)
         return rc;
 
-    result.next_direction = start_direction;
+    result.n_snakes = n_snakes;
     result.state = SNK_STATE_RUNNING;
 
     *process = result;
@@ -146,27 +165,37 @@ snk_create(const snk_field *field, const snk_position *start_position,
 }
 
 static snk_rc_type
-snk_snake_advance_in_field(snk_snake *snake, snk_direction next_direction, snk_field *field)
+snk_snakes_advance_in_field(size_t n_snakes, snk_snake *snakes, const snk_direction *next_directions, snk_field *field)
 {
-    snk_snake snake_copy = *snake;
+    snk_snake snakes_copy[SNK_SNAKES_MAX];
     snk_rc_type rc;
+    size_t i;
 
-    rc = snk_snake_advance(&snake_copy, next_direction);
-    if (rc != SNK_RC_SUCCESS)
-        return rc;
 
-    rc = snk_check_snake(&snake_copy, field);
+    for (i = 0; i < n_snakes; i++)
+    {
+        snakes_copy[i] = snakes[i];
+        rc = snk_snake_advance(&snakes_copy[i], next_directions[i]);
+        if (rc != SNK_RC_SUCCESS)
+            return rc;
+    }
+
+    rc = snk_check_snakes(n_snakes, snakes_copy, field);
     if (rc != SNK_RC_SUCCESS)
         return (rc == SNK_RC_INVALID ? SNK_RC_OVER : rc);
 
-    if (field->n_food > 0 &&
-        snk_position_compare(snk_snake_get_head_position(&snake_copy), &field->food) == 0)
+    for (i = 0; i < n_snakes; i++)
     {
-        snk_snake_add_pending_length(&snake_copy, 1);
-        field->n_food = 0;
+        if (field->n_food > 0 &&
+            snk_position_compare(snk_snake_get_head_position(&snakes_copy[i]), &field->food) == 0)
+        {
+            snk_snake_add_pending_length(&snakes_copy[i], 1);
+            field->n_food = 0;
+        }
     }
 
-    *snake = snake_copy;
+    for (i = 0; i < n_snakes; i++)
+        snakes[i] = snakes_copy[i];
 
     return SNK_RC_SUCCESS;
 }
@@ -224,7 +253,7 @@ snk_next_tick(snk_process *process)
             return SNK_RC_INVALID;
     }
 
-    rc = snk_snake_advance_in_field(&process->snake, process->next_direction, &process->field);
+    rc = snk_snakes_advance_in_field(process->n_snakes, process->snakes, process->next_directions, &process->field);
     if (rc != SNK_RC_SUCCESS)
     {
         if (rc == SNK_RC_OVER)
@@ -233,7 +262,7 @@ snk_next_tick(snk_process *process)
         return rc;
     }
 
-    rc = snk_generate_food(&process->snake, &process->field);
+    rc = snk_generate_food(&process->snakes[0], &process->field);
     if (rc != SNK_RC_SUCCESS)
         return rc;
 
@@ -241,7 +270,7 @@ snk_next_tick(snk_process *process)
 }
 
 snk_rc_type
-snk_choose_direction(snk_process *process, snk_direction direction)
+snk_choose_direction(snk_process *process, size_t snake_id, snk_direction direction)
 {
     switch (process->state)
     {
@@ -256,9 +285,12 @@ snk_choose_direction(snk_process *process, snk_direction direction)
     if (!snk_direction_is_valid(direction))
         return SNK_RC_INVALID;
 
+    if (snake_id > process->n_snakes)
+        return SNK_RC_INVALID;
+
     /* Ignore direction if it is opposite to current direction of snake's head */
-    if (direction != snk_direction_reverse(snk_snake_get_head_direction(&process->snake)))
-        process->next_direction = direction;
+    if (direction != snk_direction_reverse(snk_snake_get_head_direction(&process->snakes[snake_id])))
+        process->next_directions[snake_id] = direction;
 
     return SNK_RC_SUCCESS;
 }
@@ -359,12 +391,19 @@ snk_render(const snk_process *process, uint8_t *data, size_t data_size)
             return rc;
     }
 
-    return snk_snake_walk(&process->snake, snk_render_cb, &render_data);
+    for (i = 0; i < process->n_snakes; i++)
+    {
+        rc = snk_snake_walk(&process->snakes[i], snk_render_cb, &render_data);
+        if (rc != SNK_RC_SUCCESS)
+            return rc;
+    }
+
+    return SNK_RC_SUCCESS;
 }
 
 snk_rc_type snk_get_score(snk_process *process, snk_score *score)
 {
-    *score = snk_snake_get_length(&process->snake);
+    *score = snk_snake_get_length(&process->snakes[0]);
 
     return SNK_RC_SUCCESS;
 }
