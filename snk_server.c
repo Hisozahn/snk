@@ -1,14 +1,14 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <windows.h>
-#include <strsafe.h>
 #include <errno.h>
 #include <time.h>
 #include <wincon.h>
 #include "snk.h"
 #include "snk_util.h"
-#include "tcp_app.h"
 #include "tcp_util.h"
+#include <ws2tcpip.h>
+#pragma comment(lib, "ws2_32.lib")
 
 #define CHECK_RC(_call)                                             \
 do                                                                  \
@@ -87,66 +87,72 @@ DWORD WINAPI thread(void *arg)
     }
 }
 
-void Error()
-{
-    LPVOID lpMsgBuf;
-    DWORD dw = GetLastError();
-
-    FormatMessage(
-            FORMAT_MESSAGE_ALLOCATE_BUFFER |
-            FORMAT_MESSAGE_FROM_SYSTEM |
-            FORMAT_MESSAGE_IGNORE_INSERTS,
-            NULL,
-            dw,
-            MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-            (LPTSTR) &lpMsgBuf,
-            0, NULL );
-
-    fprintf(stderr, "%s\n", (const char *)lpMsgBuf);
-
-    LocalFree(lpMsgBuf);
-}
-
-DWORD WINAPI client_thread(void *arg)
-{
-    tcp_client_main(arg);
-}
-
-DWORD WINAPI server_thread(void *arg)
-{
-    tcp_server_main(arg);
-}
-
 int
 main(int argc, char *argv[])
 {
+    snk_field_obstacle obstacles[] = {{{0, 0}, {5, 0}}};
+    snk_position start_position = {5, 5};
+    snk_process process;
+    snk_field field;
+    HANDLE mutex;
+    thread_data data;
+    int new_socket;
+    direction_msg msg;
+    int sockfd;
     struct sockaddr_in server_addr;
-    HANDLE server_handle;
-    HANDLE client_handle;
+    int rc;
+    int addrlen = sizeof(server_addr);
 
     win_socket_init();
 
-    if (argc < 3)
-    {
+    if (argc < 3) {
         fprintf(stderr, "arguments are invalid\n");
         _Exit(1);
     }
 
     server_addr = parse_address(argv[1], atoi(argv[2]));
+    /* socket: create the socket */
+    sockfd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    if (sockfd < 0)
+        tcp_error("ERROR opening socket");
 
-    if ((server_handle = CreateThread(NULL, 0, client_thread, &server_addr, 0, NULL)) == NULL)
+    if ((rc = bind(sockfd, (struct sockaddr *)&server_addr, sizeof(server_addr))) < 0)
+    tcp_error("ERROR binding socket");
+
+    if (listen(sockfd, 3) < 0)
+        tcp_error("ERROR listening on socket");
+
+    if ((new_socket = accept(sockfd, (struct sockaddr *)&server_addr, (socklen_t *)&addrlen)) < 0)
+        tcp_error("ERROR accepting on socket");
+
+    CHECK_RC(snk_create_field(15, 10, SNK_ARRAY_LEN(obstacles), obstacles, (uint32_t)time(NULL),
+                              &field));
+
+    CHECK_RC(snk_create(&field, &start_position, SNK_DIRECTION_RIGHT, 5, &process));
+
+    if ((mutex = CreateMutexA(NULL, FALSE, NULL)) == NULL)
     {
-        fprintf(stderr, "create client thread failed\n");
+        fprintf(stderr, "create mutex failed\n");
+        _Exit(1);
+    }
+    data.mutex = mutex;
+    data.proc = &process;
+
+    if (CreateThread(NULL, 0, thread, &data, 0, NULL) == NULL)
+    {
+        fprintf(stderr, "create thread failed\n");
         _Exit(1);
     }
 
-    if ((client_handle = CreateThread(NULL, 0, server_thread, &server_addr, 0, NULL)) == NULL)
-    {
-        fprintf(stderr, "create client thread failed\n");
-        _Exit(1);
-    }
-    WaitForSingleObject(server_handle, INFINITE);
-    WaitForSingleObject(client_handle, INFINITE);
 
-    return 0;
+    while (1)
+    {
+        rc = recv( new_socket , &msg, sizeof(msg), 0);
+        if (rc < 0 || msg.magic != DIRECTION_MSG_MAGIC)
+            tcp_error("ERROR reading from socket");
+
+        WaitForSingleObject(mutex, INFINITE);
+        CHECK_RC(snk_choose_direction(&process, msg.direction));
+        ReleaseMutex(mutex);
+    }
 }
