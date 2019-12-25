@@ -8,6 +8,83 @@
 #include "tcp_util.h"
 #pragma comment(lib, "ws2_32.lib")
 
+typedef struct thread_data {
+    int socket;
+} thread_data;
+
+#define CHECK_RC(_call)                                             \
+do                                                                  \
+{                                                                   \
+    if ((rc = (_call)) != 0)                                               \
+    {                                                               \
+        printf("line %d, failed call %s: %d\n", __LINE__, #_call, rc);      \
+        _Exit(1);                                                   \
+    }                                                               \
+} while (0)
+
+static int
+draw_data_convert(uint8_t *draw_data, size_t size)
+{
+    size_t i;
+
+    for (i = 0; i < size; i++)
+    {
+        //printf("%d: %d\n", i, draw_data[i]);
+        switch (draw_data[i])
+        {
+            case SNK_POSITION_EMPTY:
+                draw_data[i] = '_';
+                break;
+            case SNK_POSITION_OBSTACLE:
+                draw_data[i] = '-';
+                break;
+            case SNK_POSITION_FOOD:
+                draw_data[i] = '#';
+                break;
+            case SNK_POSITION_SNAKE:
+                draw_data[i] = 'x';
+                break;
+            default:
+                return EINVAL;
+        }
+    }
+
+    draw_data[size] = '\0';
+
+    return 0;
+}
+
+static void
+draw(const uint8_t *draw_data, uint32_t width, uint32_t height)
+{
+    uint32_t i;
+    for (i = 0; i < height; i++)
+    {
+        printf("%.*s\n", width, &draw_data[i * width]);
+    }
+    fflush(stdout);
+}
+
+static DWORD WINAPI thread(void *arg)
+{
+    thread_data *data = arg;
+    int socket = data->socket;
+    draw_data_msg msg;
+    snk_score score;
+    int rc;
+
+    while (1) {
+        rc = recv(socket, &msg, sizeof(msg), 0);
+        if (rc < 0 || msg.magic != DRAW_DATA_MSG_MAGIC)
+            tcp_error("ERROR reading from socket");
+
+        CHECK_RC(draw_data_convert(msg.draw_data, msg.draw_data_size));
+        draw(msg.draw_data, msg.width, msg.height);
+    }
+
+    return 0;
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -18,6 +95,7 @@ main(int argc, char *argv[])
     direction_msg msg;
     int sockfd;
     struct sockaddr_in server_addr;
+    thread_data data;
     int rc;
 
     win_socket_init();
@@ -37,6 +115,13 @@ main(int argc, char *argv[])
     /* connect: create a connection with the server */
     if (connect(sockfd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0)
         tcp_error("ERROR connecting");
+
+    data.socket = sockfd;
+    if (CreateThread(NULL, 0, thread, &data, 0, NULL) == NULL)
+    {
+        fprintf(stderr, "create thread failed\n");
+        _Exit(1);
+    }
 
     hStdin = GetStdHandle(STD_INPUT_HANDLE);
 

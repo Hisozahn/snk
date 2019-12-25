@@ -22,56 +22,20 @@ do                                                                  \
     }                                                               \
 } while (0)
 
-static void
-draw(const uint8_t *draw_data, uint32_t width, uint32_t height)
-{
-    uint32_t i;
-    for (i = 0; i < height; i++)
-    {
-        printf("%.*s\n", width, &draw_data[i * width]);
-    }
-    fflush(stdout);
-}
-
-static int
-draw_data_convert(uint8_t *draw_data, size_t size)
-{
-    size_t i;
-
-    for (i = 0; i < size; i++)
-    {
-        switch (draw_data[i])
-        {
-            case SNK_POSITION_EMPTY:
-                draw_data[i] = '_';
-                break;
-            case SNK_POSITION_OBSTACLE:
-                draw_data[i] = '-';
-                break;
-            case SNK_POSITION_FOOD:
-                draw_data[i] = '#';
-                break;
-            case SNK_POSITION_SNAKE:
-                draw_data[i] = 'x';
-                break;
-            default:
-                return EINVAL;
-        }
-    }
-
-    return 0;
-}
-
 typedef struct thread_data {
     snk_process *proc;
     HANDLE mutex;
+    int sockets[SNK_SERVER_ACCEPT_SOCKETS_MAX];
+    int n_sockets;
 } thread_data;
 
-DWORD WINAPI thread(void *arg)
+static DWORD WINAPI thread(void *arg)
 {
     thread_data *data = arg;
-    uint8_t draw_data[2048];
+    uint8_t draw_data[DRAW_DATA_SIZE_MAX];
+    draw_data_msg msg;
     snk_score score;
+    int i;
     int rc;
 
     while (1) {
@@ -82,8 +46,14 @@ DWORD WINAPI thread(void *arg)
         ReleaseMutex(data->mutex);
 
         printf("score: %u\n", score);
-        CHECK_RC(draw_data_convert(draw_data, sizeof(draw_data)));
-        draw(draw_data, data->proc->field.width, data->proc->field.height);
+        init_draw_data_msg(sizeof(draw_data), data->proc->field.width,
+                           data->proc->field.height, draw_data, &msg);
+        for (i = 0; i < data->n_sockets; i++)
+        {
+            rc = send(data->sockets[i], &msg, sizeof(msg), 0);
+            if (rc < 0)
+                tcp_error("ERROR writing to socket");
+        }
         Sleep(2000);
     }
 }
@@ -146,6 +116,9 @@ main(int argc, char *argv[])
     }
     data.mutex = mutex;
     data.proc = &process;
+    for (i = 0; i < n_clients; i++)
+        data.sockets[i] = accept_sockets[i];
+    data.n_sockets = n_clients;
 
     if (CreateThread(NULL, 0, thread, &data, 0, NULL) == NULL)
     {

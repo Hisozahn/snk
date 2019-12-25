@@ -40,6 +40,20 @@ direction_msg init_direction_msg(int direction)
     return msg;
 }
 
+void init_draw_data_msg(uint32_t size, uint32_t width, uint32_t height,
+                        const uint8_t *data, draw_data_msg *msg)
+{
+    uint32_t i;
+
+    msg->magic = DRAW_DATA_MSG_MAGIC;
+    msg->draw_data_size = size;
+    msg->width = width;
+    msg->height = height;
+
+    for (i = 0; i < size; i++)
+        msg->draw_data[i] = data[i];
+}
+
 int inet_pton(int af, const char *src, void *dst)
 {
     struct sockaddr_storage ss;
