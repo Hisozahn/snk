@@ -10,6 +10,8 @@
 #include <ws2tcpip.h>
 #pragma comment(lib, "ws2_32.lib")
 
+#define SNK_SERVER_ACCEPT_SOCKETS_MAX 4
+
 #define CHECK_RC(_call)                                             \
 do                                                                  \
 {                                                                   \
@@ -76,14 +78,13 @@ DWORD WINAPI thread(void *arg)
         WaitForSingleObject(data->mutex, INFINITE);
         CHECK_RC(snk_next_tick(data->proc));
         CHECK_RC(snk_get_score(data->proc, &score));
-        printf("score: %u\n", score);
         CHECK_RC(snk_render(data->proc, draw_data, sizeof(draw_data)));
-
-        CHECK_RC(draw_data_convert(draw_data, sizeof(draw_data)));
-
-        draw(draw_data, data->proc->field.width, data->proc->field.height);
         ReleaseMutex(data->mutex);
-        Sleep(200);
+
+        printf("score: %u\n", score);
+        CHECK_RC(draw_data_convert(draw_data, sizeof(draw_data)));
+        draw(draw_data, data->proc->field.width, data->proc->field.height);
+        Sleep(2000);
     }
 }
 
@@ -91,26 +92,31 @@ int
 main(int argc, char *argv[])
 {
     snk_field_obstacle obstacles[] = {{{0, 0}, {5, 0}}};
-    snk_position start_position = {5, 5};
+    snk_position start_positions[] = {{5, 5}, {5, 7}};
+    snk_direction start_directions[] = {SNK_DIRECTION_RIGHT, SNK_DIRECTION_RIGHT};
+    uint32_t start_lengths[] = {5, 4};
     snk_process process;
     snk_field field;
     HANDLE mutex;
     thread_data data;
-    int new_socket;
+    int accept_sockets[SNK_SERVER_ACCEPT_SOCKETS_MAX];
     direction_msg msg;
     int sockfd;
     struct sockaddr_in server_addr;
     int rc;
+    int n_clients;
     int addrlen = sizeof(server_addr);
+    int i;
 
     win_socket_init();
 
-    if (argc < 3) {
-        fprintf(stderr, "arguments are invalid\n");
+    if (argc < 4) {
+        fprintf(stderr, "usage: <n clients> <IP address> <TCP port>\n");
         _Exit(1);
     }
 
-    server_addr = parse_address(argv[1], atoi(argv[2]));
+    server_addr = parse_address(argv[2], atoi(argv[3]));
+    n_clients = atoi(argv[1]);
     /* socket: create the socket */
     sockfd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (sockfd < 0)
@@ -119,16 +125,19 @@ main(int argc, char *argv[])
     if ((rc = bind(sockfd, (struct sockaddr *)&server_addr, sizeof(server_addr))) < 0)
     tcp_error("ERROR binding socket");
 
-    if (listen(sockfd, 3) < 0)
+    if (listen(sockfd, n_clients) < 0)
         tcp_error("ERROR listening on socket");
 
-    if ((new_socket = accept(sockfd, (struct sockaddr *)&server_addr, (socklen_t *)&addrlen)) < 0)
-        tcp_error("ERROR accepting on socket");
+    for (i = 0; i < n_clients; i++)
+    {
+        if ((accept_sockets[i] = accept(sockfd, (struct sockaddr *)&server_addr, (socklen_t *)&addrlen)) < 0)
+            tcp_error("ERROR accepting socket");
+    }
 
     CHECK_RC(snk_create_field(15, 10, SNK_ARRAY_LEN(obstacles), obstacles, (uint32_t)time(NULL),
                               &field));
 
-    CHECK_RC(snk_create(&field, &start_position, SNK_DIRECTION_RIGHT, 5, &process));
+    CHECK_RC(snk_create(&field, n_clients, start_positions, start_directions, start_lengths, &process));
 
     if ((mutex = CreateMutexA(NULL, FALSE, NULL)) == NULL)
     {
@@ -144,15 +153,28 @@ main(int argc, char *argv[])
         _Exit(1);
     }
 
-
     while (1)
     {
-        rc = recv( new_socket , &msg, sizeof(msg), 0);
-        if (rc < 0 || msg.magic != DIRECTION_MSG_MAGIC)
-            tcp_error("ERROR reading from socket");
+        fd_set read_set;
+        FD_ZERO(&read_set);
+        for (i = 0; i < n_clients; i++)
+            FD_SET(accept_sockets[i], &read_set);
+        rc = select(n_clients, &read_set, NULL, NULL, NULL);
+        if (rc < 0)
+            tcp_error("Error selecting socket");
 
         WaitForSingleObject(mutex, INFINITE);
-        CHECK_RC(snk_choose_direction(&process, msg.direction));
+        for (i = 0; i < n_clients; i++)
+        {
+            if (FD_ISSET(accept_sockets[i], &read_set))
+            {
+                rc = recv(accept_sockets[i], &msg, sizeof(msg), 0);
+                if (rc < 0 || msg.magic != DIRECTION_MSG_MAGIC)
+                    tcp_error("ERROR reading from socket");
+
+                CHECK_RC(snk_choose_direction(&process, i, msg.direction));
+            }
+        }
         ReleaseMutex(mutex);
     }
 }

@@ -24,7 +24,7 @@ main(int argc, char *argv[])
 
     if (argc < 3)
     {
-        fprintf(stderr, "arguments are invalid\n");
+        fprintf(stderr, "usage: <IP address> <TCP port>\n");
         _Exit(1);
     }
 
