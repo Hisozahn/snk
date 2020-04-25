@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <ctype.h>
-#include <windows.h>
 #include <errno.h>
 #include <time.h>
+#include <stdlib.h>
 #include "snk.h"
 #include "snk_util.h"
 
@@ -12,7 +12,7 @@ do                                                                  \
     if ((rc = (_call)) != 0)                                               \
     {                                                               \
         printf("line %d, failed call %s: %d\n", __LINE__, #_call, rc);      \
-        _Exit(1);                                                   \
+        exit(1);                                                   \
     }                                                               \
 } while (0)
 
@@ -65,7 +65,7 @@ main(int argc, char *argv[])
     snk_process process;
     snk_field field;
     int rc;
-    int input;
+    char input[1];
 
     (void)argc;
     (void)argv;
@@ -88,33 +88,35 @@ main(int argc, char *argv[])
         CHECK_RC(draw_data_convert(draw_data, sizeof(draw_data)));
 
         draw(draw_data, process.field.width, process.field.height);
-        //Sleep(1000);
+
         retry:
-        if ((input = getchar()) != EOF)
+
+        rc = fread(input, sizeof(input), 1, stdin);
+        if (rc != sizeof(input))
+            break;
+
+        snk_direction new_direction;
+        char c = (char)tolower(input[0]);
+
+        switch (c)
         {
-            snk_direction new_direction;
-            char c = (char)tolower(input);
+            case 'a':
+                new_direction = SNK_DIRECTION_LEFT;
+                break;
+            case 'd':
+                new_direction = SNK_DIRECTION_RIGHT;
+                break;
+            case 'w':
+                new_direction = SNK_DIRECTION_UP;
+                break;
+            case 's':
+                new_direction = SNK_DIRECTION_DOWN;
+                break;
+            default:
+                goto retry;
 
-            switch (c)
-            {
-                case 'a':
-                    new_direction = SNK_DIRECTION_LEFT;
-                    break;
-                case 'd':
-                    new_direction = SNK_DIRECTION_RIGHT;
-                    break;
-                case 'w':
-                    new_direction = SNK_DIRECTION_UP;
-                    break;
-                case 's':
-                    new_direction = SNK_DIRECTION_DOWN;
-                    break;
-                default:
-                    goto retry;
-
-            }
-            CHECK_RC(snk_choose_direction(&process, new_direction));
         }
+        CHECK_RC(snk_choose_direction(&process, new_direction));
     }
 
     return 0;

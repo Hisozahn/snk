@@ -4,10 +4,10 @@
 static snk_rc_type
 snk_check_position_possible(const snk_position *position, uint32_t field_width, uint32_t field_height)
 {
-    if (position->x < 0 || position->x >= field_width)
+    if (position->x >= field_width)
         return SNK_RC_INVALID;
 
-    if (position->y < 0 || position->y >= field_height)
+    if (position->y >= field_height)
         return SNK_RC_INVALID;
 
     return SNK_RC_SUCCESS;
@@ -114,7 +114,7 @@ snk_check_snake_cb(const snk_position *pos, void *data)
 static snk_rc_type
 snk_check_snake(const snk_snake *snake, const snk_field *field)
 {
-    struct snk_check_snake_data data = {field, {0}, 0};
+    struct snk_check_snake_data data = {field, {{0}}, 0};
 
     return snk_snake_walk(snake, snk_check_snake_cb, &data);
 }

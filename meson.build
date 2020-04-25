@@ -1,13 +1,11 @@
-project('snk', 'c')
+project('snk', 'c', default_options : ['c_std=c89'])
+
 extra_args = [
     '-ggdb3',
     '-Werror',
-    '-O',
+    '-O3',
     '-Wall',
     '-Wextra',
-#    '-pedantic',
-#    '-pedantic-errors',
-    '-ansi',
     '-Wcast-align',
     '-Wcast-qual',
     '-Wdisabled-optimization',
@@ -25,11 +23,14 @@ extra_args = [
     '-Wmaybe-uninitialized',
     '-Wuninitialized',
 ]
-executable(
-    'snk',
+
+executable('snk',
     'main.c',
     'snk.c',
     'snk_joint.c',
-    c_args : extra_args,
-    dependencies: [],
+    'snk_position.c',
+    'snk_snake.c',
+    'snk_util.c',
+     c_args : extra_args,
+     dependencies: [],
 )

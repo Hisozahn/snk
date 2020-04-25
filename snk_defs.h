@@ -29,37 +29,6 @@ typedef enum snk_direction {
     SNK_DIRECTION_ENUM_VALID_SIZE = SNK_DIRECTION_INVALID, /**< Number of valid enum entries */
 } snk_direction;
 
-/**
- * Get opposite direction.
- *
- * @param[in] direction     Original direction
- *
- * @return                  Opposite direction
- */
-static inline snk_direction
-snk_direction_reverse(snk_direction direction)
-{
-    switch (direction)
-    {
-        case SNK_DIRECTION_RIGHT:
-            return SNK_DIRECTION_LEFT;
-        case SNK_DIRECTION_LEFT:
-            return SNK_DIRECTION_RIGHT;
-        case SNK_DIRECTION_DOWN:
-            return SNK_DIRECTION_UP;
-        case SNK_DIRECTION_UP:
-            return SNK_DIRECTION_DOWN;
-        default:
-            return SNK_DIRECTION_INVALID;
-    }
-}
-
-static inline int
-snk_direction_is_valid(snk_direction direction)
-{
-    return (direction >= 0 && direction < SNK_DIRECTION_ENUM_VALID_SIZE);
-}
-
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
