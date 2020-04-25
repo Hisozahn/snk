@@ -3,3 +3,4 @@ valgrind-out.txt
 cmake-build*/
 .idea/
 build/
+.vscode/
