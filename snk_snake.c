@@ -127,7 +127,7 @@ snk_snake_pos_iter_next(snk_snake_position_iter *iter)
         next_joint = snk_joint_buffer_get(&iter->snake->joints, iter->joint_i);
         if (next_joint != NULL)
         {
-            if (snk_position_compare(&iter->pos, snk_joint_get_position(next_joint)) == 0)
+            if (snk_position_equal(&iter->pos, snk_joint_get_position(next_joint)))
             {
                 iter->direction = snk_joint_get_direction(next_joint);
                 iter->joint_i++;

@@ -100,7 +100,7 @@ snk_check_snake(const snk_snake *snake, const snk_field *field)
             if (inner.i >= outer.i)
                 break;
 
-            if (snk_position_compare(&inner.pos, &outer.pos) == 0)
+            if (snk_position_equal(&inner.pos, &outer.pos))
                 return SNK_RC_INVALID;
         }
     }
@@ -149,7 +149,7 @@ snk_snake_advance_in_field(snk_snake *snake, snk_direction next_direction, snk_f
         return (rc == SNK_RC_INVALID ? SNK_RC_OVER : rc);
 
     if (field->n_food > 0 &&
-        snk_position_compare(snk_snake_get_head_position(&snake_copy), &field->food) == 0)
+        snk_position_equal(snk_snake_get_head_position(&snake_copy), &field->food))
     {
         snk_snake_add_pending_length(&snake_copy, 1);
         field->n_food = 0;
@@ -185,11 +185,11 @@ snk_generate_food(const snk_snake *snake, snk_field *field)
 
     for (i = 0; i < n_snk_positions; i++)
     {
-        if (snk_position_compare(&pos, &snk_positions[i]) == 0)
+        if (snk_position_equal(&pos, &snk_positions[i]))
             return SNK_RC_SUCCESS;
     }
 
-    if (field->n_food > 0 && (snk_position_compare(&pos, &field->food) == 0))
+    if (field->n_food > 0 && (snk_position_equal(&pos, &field->food)))
         return SNK_RC_SUCCESS;
 
     field->n_food = 1;

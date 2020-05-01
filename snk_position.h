@@ -35,7 +35,7 @@ snk_rc_type snk_position_advance(snk_position *position, snk_direction direction
  * @retval 1        Positions are equal
  * @retval 0        Positions are different
  */
-int snk_position_compare(const snk_position *a, const snk_position *b);
+int snk_position_equal(const snk_position *a, const snk_position *b);
 
 #ifdef __cplusplus
 } /* extern "C" */

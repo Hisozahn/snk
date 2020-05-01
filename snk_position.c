@@ -25,7 +25,7 @@ snk_position_advance(snk_position *position, snk_direction direction)
 }
 
 int
-snk_position_compare(const snk_position *a, const snk_position *b)
+snk_position_equal(const snk_position *a, const snk_position *b)
 {
-    return !(a->y == b->y && a->x == b->x);
+    return a->y == b->y && a->x == b->x;
 }
