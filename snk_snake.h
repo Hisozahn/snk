@@ -17,15 +17,36 @@ typedef struct snk_snake {
     uint32_t pending_length; /**< Additional length which converts to actual length when a snake moves */
 } snk_snake;
 
+/** Snake body positions iterator */
+typedef struct snk_snake_position_iter {
+    const snk_snake *snake; /**< Snake to iterate */
+    snk_position pos; /**< Current position */
+    snk_direction direction; /**< Current direction of the iterator */
+    uint32_t i; /**< Current index of the snake's body cell */
+    uint32_t joint_i; /**< Current index of the snake's joint
+                           Use this as the number of joints that were required to iterate
+                           the whole snake after using SNK_SNAKE_FOREACH */
+} snk_snake_position_iter;
+
+/** Init snake body positions iterator. It starts from the snake's head. */
+void snk_snake_pos_iter_init(snk_snake_position_iter *iter, const snk_snake *snake);
+
+/** Snake body positions iterator's "Has next element" condition */
+int snk_snake_pos_iter_has_next(const snk_snake_position_iter *iter);
+
+/** Move snake body positions iterator to the next position */
+void snk_snake_pos_iter_next(snk_snake_position_iter *iter);
+
 /**
- * Callback that is called in snk_snake_walk().
- *
- * @param[in] pos   Position of an element of snake's body
- * @param[in] data  Callback data
- *
- * @return          Status code
+ * Iterate snake body positions starting from the snake's head.
+ * 
+ * @param _iter     Position iterator pointer (snk_snake_position_iter *)
+ * @param _snake    Snake object (const snk_snake *)
  */
-typedef snk_rc_type (*snk_snake_walk_cb)(const snk_position *pos, void *data);
+#define SNK_SNAKE_FOREACH(_iter, _snake) \
+    for (snk_snake_pos_iter_init((_iter), (_snake)); \
+         snk_snake_pos_iter_has_next(_iter); \
+         snk_snake_pos_iter_next(_iter))
 
 /**
  * Initialize a snake.
@@ -39,18 +60,6 @@ void snk_snake_init(const snk_position *pos, snk_direction direction, const snk_
 
 /** Snake's head position getter */
 const snk_position *snk_snake_get_head_position(const snk_snake *snake);
-
-/**
- * Call a callback on every position of a snake's body.
- * If a callback returns an error, the functions returns that error immediately.
- *
- * @param[in] snake         Snake to iterate
- * @param[in] cb            Callback
- * @param[in,out] cb_data   Callback data
- *
- * @return                  Status code
- */
-snk_rc_type snk_snake_walk(const snk_snake *snake, snk_snake_walk_cb cb, void *cb_data);
 
 /**
  * Advance a snake's position by one unit.

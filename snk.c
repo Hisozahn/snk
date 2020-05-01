@@ -82,41 +82,30 @@ snk_create_field(uint32_t width, uint32_t height, uint32_t n_obstacles, const sn
     return SNK_RC_SUCCESS;
 }
 
-struct snk_check_snake_data {
-    const snk_field *field;
-    snk_position positions[64];
-    uint32_t n_positions;
-};
-
-static snk_rc_type
-snk_check_snake_cb(const snk_position *pos, void *data)
-{
-    struct snk_check_snake_data *check_data = data;
-    uint32_t i;
-    snk_rc_type rc;
-
-    rc = snk_check_position_available(pos, check_data->field);
-    if (rc != SNK_RC_SUCCESS)
-        return rc;
-
-    for (i = 0; i < check_data->n_positions; i++)
-    {
-        if (snk_position_compare(pos, &check_data->positions[i]) == 0)
-            return SNK_RC_INVALID;
-    }
-
-    check_data->positions[check_data->n_positions] = *pos;
-    check_data->n_positions++;
-
-    return SNK_RC_SUCCESS;
-}
-
 static snk_rc_type
 snk_check_snake(const snk_snake *snake, const snk_field *field)
 {
-    struct snk_check_snake_data data = {field, {{0}}, 0};
+    snk_snake_position_iter outer;
+    snk_rc_type rc;
 
-    return snk_snake_walk(snake, snk_check_snake_cb, &data);
+    SNK_SNAKE_FOREACH(&outer, snake)
+    {
+        snk_snake_position_iter inner;
+        rc = snk_check_position_available(&outer.pos, field);
+        if (rc != SNK_RC_SUCCESS)
+            return rc;
+
+        SNK_SNAKE_FOREACH(&inner, snake)
+        {
+            if (inner.i >= outer.i)
+                break;
+
+            if (snk_position_compare(&inner.pos, &outer.pos) == 0)
+                return SNK_RC_INVALID;
+        }
+    }
+
+    return SNK_RC_SUCCESS;
 }
 
 snk_rc_type
@@ -318,26 +307,13 @@ snk_render_field_obstacle(const snk_field *field, const snk_field_obstacle *obst
 
     return SNK_RC_SUCCESS;
 }
-struct snk_render_data {
-    const snk_field *field;
-    uint8_t *data;
-    size_t data_size;
-};
-
-static snk_rc_type
-snk_render_cb(const snk_position *pos, void *data)
-{
-    struct snk_render_data *render_data = data;
-
-    return snk_render_position(render_data->field, pos, SNK_POSITION_SNAKE, render_data->data, render_data->data_size);
-}
 
 snk_rc_type
 snk_render(const snk_process *process, uint8_t *data, size_t data_size)
 {
-    struct snk_render_data render_data = {&process->field, data, data_size};
-    size_t i;
+    snk_snake_position_iter iter;
     snk_rc_type rc;
+    size_t i;
 
     if ((process->field.height * process->field.width) > data_size)
         return SNK_RC_NOBUF;
@@ -359,7 +335,14 @@ snk_render(const snk_process *process, uint8_t *data, size_t data_size)
             return rc;
     }
 
-    return snk_snake_walk(&process->snake, snk_render_cb, &render_data);
+    SNK_SNAKE_FOREACH(&iter, &process->snake)
+    {
+        rc = snk_render_position(&process->field, &iter.pos, SNK_POSITION_SNAKE, data, data_size);
+        if (rc != SNK_RC_SUCCESS)
+            return rc;
+    }
+
+    return SNK_RC_SUCCESS;
 }
 
 snk_rc_type snk_get_score(snk_process *process, snk_score *score)
