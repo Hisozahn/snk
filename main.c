@@ -61,7 +61,9 @@ main(int argc, char *argv[])
     int i;
     uint8_t draw_data[2048];
     snk_field_obstacle obstacles[] = {{{0, 0}, {5, 0}}};
-    snk_position start_position = {5, 5};
+    snk_position start_positions[] = {{5, 5}, {5, 7}};
+    snk_direction start_directions[] = {SNK_DIRECTION_RIGHT, SNK_DIRECTION_RIGHT};
+    uint32_t start_lengths[] = {5, 4};
     snk_process process;
     snk_field field;
     int rc;
@@ -73,7 +75,7 @@ main(int argc, char *argv[])
     CHECK_RC(snk_create_field(15, 10, SNK_ARRAY_LEN(obstacles), obstacles, (uint32_t)time(NULL),
             &field));
 
-    CHECK_RC(snk_create(&field, &start_position, SNK_DIRECTION_RIGHT, 5, &process));
+    CHECK_RC(snk_create(&field, 2, start_positions, start_directions, start_lengths, &process));
 
     for (i = 0; i < 100; i++)
     {
@@ -96,27 +98,48 @@ main(int argc, char *argv[])
             break;
 
         snk_direction new_direction;
+        size_t id;
         char c = (char)tolower(input[0]);
 
         switch (c)
         {
             case 'a':
                 new_direction = SNK_DIRECTION_LEFT;
+                id = 0;
                 break;
             case 'd':
                 new_direction = SNK_DIRECTION_RIGHT;
+                id = 0;
                 break;
             case 'w':
                 new_direction = SNK_DIRECTION_UP;
+                id = 0;
                 break;
             case 's':
                 new_direction = SNK_DIRECTION_DOWN;
+                id = 0;
+                break;
+            case 'j':
+                new_direction = SNK_DIRECTION_LEFT;
+                id = 1;
+                break;
+            case 'l':
+                new_direction = SNK_DIRECTION_RIGHT;
+                id = 1;
+                break;
+            case 'i':
+                new_direction = SNK_DIRECTION_UP;
+                id = 1;
+                break;
+            case 'k':
+                new_direction = SNK_DIRECTION_DOWN;
+                id = 1;
                 break;
             default:
                 goto retry;
 
         }
-        CHECK_RC(snk_choose_direction(&process, new_direction));
+        CHECK_RC(snk_choose_direction(&process, id, new_direction));
     }
 
     return 0;
