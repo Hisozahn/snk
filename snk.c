@@ -372,7 +372,10 @@ snk_render(const snk_process *process, uint8_t *data, size_t data_size)
 
 snk_rc_type snk_get_score(snk_process *process, snk_score *score)
 {
-    *score = snk_snake_get_length(&process->snakes[0]);
+    uint32_t i;
+
+    for (i = 0; i < process->n_snakes; i++)
+        score->player[i] = snk_snake_get_length(&process->snakes[i]);
 
     return 0;
 }

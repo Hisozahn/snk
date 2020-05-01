@@ -56,7 +56,9 @@ typedef enum snk_position_type {
 } snk_position_type;
 
 /** Type of a score */
-typedef uint32_t snk_score;
+typedef struct snk_score {
+    uint32_t player[SNK_SNAKES_MAX];
+} snk_score;
 
 /**
  * Initialize a field. The consistency of the field's obstacles is checked

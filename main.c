@@ -6,6 +6,8 @@
 #include "snk.h"
 #include "snk_util.h"
 
+#define PLAYERS_NUMBER 2
+
 #define CHECK_RC(_call)                                             \
 do                                                                  \
 {                                                                   \
@@ -59,11 +61,12 @@ int
 main(int argc, char *argv[])
 {
     int i;
+    int j;
     uint8_t draw_data[2048];
-    snk_field_obstacle obstacles[] = {{{0, 0}, {5, 0}}};
-    snk_position start_positions[] = {{5, 5}, {5, 7}};
-    snk_direction start_directions[] = {SNK_DIRECTION_RIGHT, SNK_DIRECTION_RIGHT};
-    uint32_t start_lengths[] = {5, 4};
+    snk_field_obstacle obstacles[PLAYERS_NUMBER] = {{{0, 0}, {5, 0}}};
+    snk_position start_positions[PLAYERS_NUMBER] = {{5, 5}, {5, 7}};
+    snk_direction start_directions[PLAYERS_NUMBER] = {SNK_DIRECTION_RIGHT, SNK_DIRECTION_RIGHT};
+    uint32_t start_lengths[PLAYERS_NUMBER] = {5, 4};
     snk_process process;
     snk_field field;
     int rc;
@@ -75,7 +78,7 @@ main(int argc, char *argv[])
     CHECK_RC(snk_create_field(15, 10, SNK_ARRAY_LEN(obstacles), obstacles, (uint32_t)time(NULL),
             &field));
 
-    CHECK_RC(snk_create(&field, 2, start_positions, start_directions, start_lengths, &process));
+    CHECK_RC(snk_create(&field, PLAYERS_NUMBER, start_positions, start_directions, start_lengths, &process));
 
     for (i = 0; i < 100; i++)
     {
@@ -83,7 +86,11 @@ main(int argc, char *argv[])
 
         CHECK_RC(snk_next_tick(&process));
         snk_get_score(&process, &score);
-        printf("score: %u\n", score);
+
+        printf("score:");
+        for (j = 0; j < PLAYERS_NUMBER; j++)
+            printf(" %u", score.player[j]);
+        printf("\n");
 
         CHECK_RC(snk_render(&process, draw_data, sizeof(draw_data)));
 
