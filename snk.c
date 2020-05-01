@@ -180,39 +180,89 @@ snk_snakes_advance_in_field(size_t n_snakes, snk_snake *snakes, const snk_direct
     return 0;
 }
 
-static snk_rc_type
-snk_generate_food(const snk_snake *snake, snk_field *field)
+static int
+snk_is_position_empty(size_t n_snakes, const snk_snake *snakes, snk_field *field, const snk_position *pos)
 {
-    snk_position pos;
-    snk_position snk_positions[64];
-    size_t n_snk_positions = SNK_ARRAY_LEN(snk_positions);
+    snk_snake_position_iter iter;
     size_t i;
-    snk_rc_type rc;
+
+    if (!snk_is_position_available(pos, field))
+        return 0;
+
+    for (i = 0; i < n_snakes; i++)
+    {
+        SNK_SNAKE_FOREACH(&iter, &snakes[i])
+        {
+            if (snk_position_equal(&iter.pos, pos))
+                return 0;
+        }
+    }
+
+    if (field->n_food > 0 && (snk_position_equal(pos, &field->food)))
+        return 0;
+
+    return 1;
+}
+
+static void
+snk_place_food(snk_field *field, const snk_position *pos)
+{
+    field->n_food = 1;
+    field->food = *pos;
+}
+
+static snk_rc_type
+snk_check_and_place_food(size_t n_snakes, const snk_snake *snakes, snk_field *field, const snk_position *pos)
+{
+    if (snk_is_position_empty(n_snakes, snakes, field, pos))
+    {
+        snk_place_food(field, pos);
+        return 0;
+    }
+
+    return SNK_RC_INVALID;
+}
+
+static snk_rc_type
+snk_generate_food(size_t n_snakes, const snk_snake *snakes, snk_field *field)
+{
+    snk_direction order[2][2] = {{SNK_DIRECTION_LEFT, SNK_DIRECTION_UP}, {SNK_DIRECTION_RIGHT, SNK_DIRECTION_DOWN}};
+    snk_position food_pos;
+    uint32_t advance_len;
+    size_t order_id;
+    size_t half_id;
+    size_t i;
 
     if (field->n_food > 0)
         return 0;
 
-    pos.x = snk_rand(&field->rand_seed) % field->width;
-    pos.y = snk_rand(&field->rand_seed) % field->height;
+    food_pos.x = snk_rand(&field->rand_seed) % field->width;
+    food_pos.y = snk_rand(&field->rand_seed) % field->height;
 
-    if (!snk_is_position_available(&pos, field))
+    if (snk_check_and_place_food(n_snakes, snakes, field, &food_pos) == 0)
         return 0;
 
-    rc = snk_snake_get_positions(snake, &n_snk_positions, snk_positions);
-    if (rc != 0)
-        return rc;
-
-    for (i = 0; i < n_snk_positions; i++)
+    advance_len = 1;
+    while (1)
     {
-        if (snk_position_equal(&pos, &snk_positions[i]))
-            return 0;
+        for (order_id = 0; order_id < SNK_ARRAY_LEN(order); order_id++)
+        {
+            for (half_id = 0; half_id < SNK_ARRAY_LEN(order[0]); half_id++)
+            {
+                for (i = 0; i < advance_len; i++)
+                {
+                    snk_position_advance(&food_pos, order[order_id][half_id]);
+                    if (snk_check_and_place_food(n_snakes, snakes, field, &food_pos) == 0)
+                        return 0;
+                }
+            }
+
+            advance_len++;
+        }
+
+        if (advance_len > field->width && advance_len > field->height)
+            return SNK_RC_INVALID;
     }
-
-    if (field->n_food > 0 && (snk_position_equal(&pos, &field->food)))
-        return 0;
-
-    field->n_food = 1;
-    field->food = pos;
 
     return 0;
 }
@@ -241,7 +291,7 @@ snk_next_tick(snk_process *process)
         return rc;
     }
 
-    rc = snk_generate_food(&process->snakes[0], &process->field);
+    rc = snk_generate_food(process->n_snakes, process->snakes, &process->field);
     if (rc != 0)
         return rc;
 
