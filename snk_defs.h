@@ -12,7 +12,7 @@ extern "C" {
  * Status code.
  */
 typedef enum snk_rc_type {
-    SNK_RC_SUCCESS, /**< OK */
+    SNK_RC_SUCCESS = 0, /**< OK, used interchangeably with 0 */
     SNK_RC_OVER, /**< Game over condition is reached */
     SNK_RC_INVALID, /**< Invalid arguments/object state */
     SNK_RC_NOBUF, /**< Buffer size is too small */

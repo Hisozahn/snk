@@ -55,7 +55,7 @@ snk_joint_buffer_add(snk_joint_buffer *buffer, snk_joint *joint) {
     buffer->n_joints++;
     buffer->first_joint = index;
 
-    return SNK_RC_SUCCESS;
+    return 0;
 }
 
 snk_rc_type
@@ -65,7 +65,7 @@ snk_joint_buffer_del(snk_joint_buffer *buffer) {
 
     buffer->n_joints--;
 
-    return SNK_RC_SUCCESS;
+    return 0;
 }
 
 uint32_t

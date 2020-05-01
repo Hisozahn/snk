@@ -21,7 +21,7 @@ snk_position_advance(snk_position *position, snk_direction direction)
             return SNK_RC_INVALID;
     }
 
-    return SNK_RC_SUCCESS;
+    return 0;
 }
 
 int

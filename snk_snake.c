@@ -42,7 +42,7 @@ snk_snake_advance(snk_snake *snake, snk_direction next_direction)
     if (snake_copy.head_direction != next_direction)
     {
         rc = snk_joint_buffer_add(&snake_copy.joints, &joint);
-        if (rc != SNK_RC_SUCCESS)
+        if (rc != 0)
             return rc;
     }
 
@@ -58,13 +58,13 @@ snk_snake_advance(snk_snake *snake, snk_direction next_direction)
     for (i = iter.joint_i; i < snk_joint_buffer_size(&snake_copy.joints); i++)
     {
         rc = snk_joint_buffer_del(&snake_copy.joints);
-        if (rc != SNK_RC_SUCCESS)
+        if (rc != 0)
             return rc;
     }
 
     *snake = snake_copy;
 
-    return SNK_RC_SUCCESS;
+    return 0;
 }
 
 snk_rc_type
@@ -84,7 +84,7 @@ snk_snake_get_positions(const snk_snake *snake, size_t *n_positions, snk_positio
 
     *n_positions = size;
 
-    return SNK_RC_SUCCESS;
+    return 0;
 }
 
 void
