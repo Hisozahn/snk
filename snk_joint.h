@@ -61,12 +61,11 @@ void snk_joint_buffer_init(snk_joint_buffer *buffer);
  *
  * @param[in] buffer    Buffer to get a joint from
  * @param[in] i         Index of an element to get, starting from the head
- * @param[out] joint    Retrieved joint
  *
- * @return              Status code
- * @retval SNK_RC_NOENT Index is out of bounds
+ * @return              Pointer to a joint
+ * @retval @c NULL      Index is out of bounds
  */
-snk_rc_type snk_joint_buffer_get(const snk_joint_buffer *buffer, uint32_t i, snk_joint *joint);
+const snk_joint * snk_joint_buffer_get(const snk_joint_buffer *buffer, uint32_t i);
 
 /**
  * Add an element to the head of a joint buffer.

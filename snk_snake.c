@@ -33,7 +33,7 @@ snk_snake_walk_impl(const snk_snake *snake, snk_snake_walk_cb cb, void *cb_data,
 {
     snk_direction direction = snk_direction_reverse(snake->head_direction);
     snk_position pos = snake->head_position;
-    snk_joint next_joint;
+    const snk_joint *next_joint;
     uint32_t joint_i;
     uint32_t i;
     snk_rc_type rc;
@@ -42,17 +42,15 @@ snk_snake_walk_impl(const snk_snake *snake, snk_snake_walk_cb cb, void *cb_data,
     {
         if (snk_joint_buffer_size(&snake->joints) > 0)
         {
-            rc = snk_joint_buffer_get(&snake->joints, joint_i, &next_joint);
-            if (rc == SNK_RC_SUCCESS)
+            next_joint = snk_joint_buffer_get(&snake->joints, joint_i);
+            if (next_joint != NULL)
             {
-                if (snk_position_compare(&pos, snk_joint_get_position(&next_joint)) == 0)
+                if (snk_position_compare(&pos, snk_joint_get_position(next_joint)) == 0)
                 {
-                    direction = snk_joint_get_direction(&next_joint);
+                    direction = snk_joint_get_direction(next_joint);
                     joint_i++;
                 }
             }
-            else if (rc != SNK_RC_NOENT)
-                return rc;
         }
 
         if (cb != NULL)

@@ -32,17 +32,15 @@ get_index_in_buffer(const snk_joint_buffer *buffer, uint32_t i) {
     return (buffer->first_joint + i) % buf_len;
 }
 
-snk_rc_type
-snk_joint_buffer_get(const snk_joint_buffer *buffer, uint32_t i, snk_joint *joint) {
+const snk_joint *
+snk_joint_buffer_get(const snk_joint_buffer *buffer, uint32_t i) {
     uint32_t index;
 
     if (i >= buffer->n_joints)
-        return SNK_RC_NOENT;
+        return NULL;
 
     index = get_index_in_buffer(buffer, i);
-    *joint = buffer->joints[index];
-
-    return SNK_RC_SUCCESS;
+    return &buffer->joints[index];
 }
 
 snk_rc_type
