@@ -1,16 +1,16 @@
 #include "snk.h"
 #include "snk_util.h"
 
-static snk_rc_type
-snk_check_position_possible(const snk_position *position, uint32_t field_width, uint32_t field_height)
+static int
+snk_is_position_possible(const snk_position *position, uint32_t field_width, uint32_t field_height)
 {
     if (position->x >= field_width)
-        return SNK_RC_INVALID;
+        return 0;
 
     if (position->y >= field_height)
-        return SNK_RC_INVALID;
+        return 0;
 
-    return 0;
+    return 1;
 }
 
 static int
@@ -22,35 +22,30 @@ snk_position_within_obstacle(const snk_position *position, const snk_field_obsta
             position->y <= obstacle->bottom_right.y);
 }
 
-static snk_rc_type
-snk_check_position_available(const snk_position *position, const snk_field *field)
+static int
+snk_is_position_available(const snk_position *position, const snk_field *field)
 {
-    snk_rc_type rc;
     uint32_t i;
 
-    rc = snk_check_position_possible(position, field->width, field->height);
-    if (rc != 0)
-        return rc;
+    if (!snk_is_position_possible(position, field->width, field->height))
+        return 0;
 
     for (i = 0; i < field->n_obstacles; i++)
     {
         if (snk_position_within_obstacle(position, &field->obstacles[i]))
-            return SNK_RC_INVALID;
+            return 0;
     }
 
-    return 0;
+    return 1;
 }
 
-static snk_rc_type
-snk_check_field_obstacle_possible(const snk_field_obstacle *obstacle, uint32_t field_width, uint32_t field_height)
+static int
+snk_is_field_obstacle_possible(const snk_field_obstacle *obstacle, uint32_t field_width, uint32_t field_height)
 {
-    snk_rc_type rc;
+    if (snk_is_position_possible(&obstacle->top_left, field_width, field_height))
+        return snk_is_position_possible(&obstacle->bottom_right, field_width, field_height);
 
-    rc = snk_check_position_possible(&obstacle->top_left, field_width, field_height);
-    if (rc == 0)
-        rc = snk_check_position_possible(&obstacle->bottom_right, field_width, field_height);
-
-    return rc;
+    return 0;
 }
 
 snk_rc_type
@@ -58,16 +53,14 @@ snk_create_field(uint32_t width, uint32_t height, uint32_t n_obstacles, const sn
                  uint32_t rand_seed, snk_field *field)
 {
     size_t i;
-    snk_rc_type rc;
 
     if (n_obstacles > SNK_ARRAY_LEN(field->obstacles))
         return SNK_RC_NOBUF;
 
     for (i = 0; i < n_obstacles; i++)
     {
-        rc = snk_check_field_obstacle_possible(&obstacles[i], width, height);
-        if (rc != 0)
-            return rc;
+        if (!snk_is_field_obstacle_possible(&obstacles[i], width, height))
+            return SNK_RC_INVALID;
     }
 
     for (i = 0; i < n_obstacles; i++)
@@ -86,14 +79,12 @@ static snk_rc_type
 snk_check_snake(const snk_snake *snake, const snk_field *field)
 {
     snk_snake_position_iter outer;
-    snk_rc_type rc;
 
     SNK_SNAKE_FOREACH(&outer, snake)
     {
         snk_snake_position_iter inner;
-        rc = snk_check_position_available(&outer.pos, field);
-        if (rc != 0)
-            return rc;
+        if (!snk_is_position_available(&outer.pos, field))
+            return SNK_RC_INVALID;
 
         SNK_SNAKE_FOREACH(&inner, snake)
         {
@@ -175,8 +166,7 @@ snk_generate_food(const snk_snake *snake, snk_field *field)
     pos.x = snk_rand(&field->rand_seed) % field->width;
     pos.y = snk_rand(&field->rand_seed) % field->height;
 
-    rc = snk_check_position_available(&pos, field);
-    if (rc != 0)
+    if (!snk_is_position_available(&pos, field))
         return 0;
 
     rc = snk_snake_get_positions(snake, &n_snk_positions, snk_positions);
