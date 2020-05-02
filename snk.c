@@ -128,7 +128,7 @@ snk_create(const snk_field *field, size_t n_snakes, const snk_position *start_po
 
     for (i = 0; i < n_snakes; i++)
     {
-        snk_snake_init(&start_position[i], start_directions[i], NULL, start_lengths[i], 0, &result.snakes[i]);
+        snk_snake_init(&start_position[i], start_directions[i], start_lengths[i], 0, &result.snakes[i]);
         result.next_directions[i] = start_directions[i];
     }
 

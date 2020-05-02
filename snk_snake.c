@@ -2,13 +2,10 @@
 #include "snk_util.h"
 
 void
-snk_snake_init(const snk_position *pos, snk_direction direction, const snk_joint_buffer *joints,
+snk_snake_init(const snk_position *pos, snk_direction direction,
                uint32_t length, uint32_t pending_length, snk_snake *snake)
 {
-    if (joints != NULL)
-        snake->joints = *joints;
-    else
-        snk_joint_buffer_init(&snake->joints);
+    snk_joint_buffer_init(&snake->joints);
 
     snake->head_direction = direction;
     snake->head_position = *pos;
