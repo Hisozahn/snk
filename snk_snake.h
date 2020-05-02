@@ -13,7 +13,7 @@ typedef struct snk_snake {
     snk_position head_position; /**< Position of a snake's head */
     snk_direction head_direction; /**< Direction of a snake's head */
     snk_joint_buffer joints; /**< A snake's joints */
-    uint32_t length; /**< Length of a snake */
+    uint32_t head_length; /**< Length of a snake's part attached to the head */
     uint32_t pending_length; /**< Additional length which converts to actual length when a snake moves */
 } snk_snake;
 
@@ -22,10 +22,8 @@ typedef struct snk_snake_position_iter {
     const snk_snake *snake; /**< Snake to iterate */
     snk_position pos; /**< Current position */
     snk_direction direction; /**< Current direction of the iterator */
-    uint32_t i; /**< Current index of the snake's body cell */
-    uint32_t joint_i; /**< Current index of the snake's joint
-                           Use this as the number of joints that were required to iterate
-                           the whole snake after using SNK_SNAKE_FOREACH */
+    uint32_t len; /**< Current length of the snake's body part */
+    uint32_t joint_i; /**< Current index of the snake's joint */
 } snk_snake_position_iter;
 
 /** Init snake body positions iterator. It starts from the snake's head. */

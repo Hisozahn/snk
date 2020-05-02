@@ -20,6 +20,7 @@ extern "C" {
 typedef struct snk_joint {
     snk_position position; /**< Position of a joint */
     snk_direction direction; /**< Direction of a joint towards the tail of a snake */
+    uint32_t length; /**< Lenght of the straight part of the snake assigned to the joint */
 } snk_joint;
 
 /**
@@ -41,7 +42,7 @@ typedef struct snk_joint_buffer {
  *
  * @param[out] joint        Joint to initialize
  */
-void snk_joint_init(const snk_position *position, snk_direction direction, snk_joint *joint);
+void snk_joint_init(const snk_position *position, snk_direction direction, uint32_t length, snk_joint *joint);
 
 /** Joint's position getter */
 const snk_position *snk_joint_get_position(const snk_joint *joint);
@@ -66,6 +67,9 @@ void snk_joint_buffer_init(snk_joint_buffer *buffer);
  * @retval @c NULL      Index is out of bounds
  */
 const snk_joint * snk_joint_buffer_get(const snk_joint_buffer *buffer, uint32_t i);
+
+/** Wrapper for snk_joint_buffer_get() to get mutable joint */
+snk_joint * snk_joint_buffer_get_mutable(snk_joint_buffer *buffer, uint32_t i);
 
 /**
  * Check whether the next snk_joint_buffer_add() call to a @p buffer will succeed.

@@ -9,7 +9,7 @@ snk_snake_init(const snk_position *pos, snk_direction direction,
 
     snake->head_direction = direction;
     snake->head_position = *pos;
-    snake->length = length;
+    snake->head_length = length;
     snake->pending_length = pending_length;
 }
 
@@ -37,26 +37,35 @@ snk_snake_advance_check(const snk_snake *snake, snk_direction next_direction)
 void
 snk_snake_advance(snk_snake *snake, snk_direction next_direction)
 {
-    snk_joint joint;
-    uint32_t i;
-    snk_snake_position_iter iter;
-
-    snk_joint_init(&snake->head_position, snk_direction_reverse(snake->head_direction), &joint);
-
     if (snake->head_direction != next_direction)
+    {
+        snk_joint joint;
+
+        snk_joint_init(&snake->head_position, snk_direction_reverse(snake->head_direction), snake->head_length, &joint);
         snk_joint_buffer_add(&snake->joints, &joint);
+        snake->head_length = 1;
+    }
+    else if (snk_joint_buffer_size(&snake->joints) > 0 || snake->pending_length > 0)
+    {
+        snake->head_length++;
+    }
 
     snake->head_direction = next_direction;
     snk_position_advance(&snake->head_position, snake->head_direction);
-    if (snake->pending_length > 0)
+
+    if (snk_joint_buffer_size(&snake->joints) > 0 && snake->pending_length == 0)
     {
-        snake->length++;
-        snake->pending_length--;
+        snk_joint *last;
+
+        last = snk_joint_buffer_get_mutable(&snake->joints, snk_joint_buffer_size(&snake->joints) - 1);
+        last->length--;
+
+        if (last->length == 0)
+            snk_joint_buffer_del(&snake->joints);
     }
 
-    SNK_SNAKE_FOREACH(&iter, snake);
-    for (i = iter.joint_i; i < snk_joint_buffer_size(&snake->joints); i++)
-        snk_joint_buffer_del(&snake->joints);
+    if (snake->pending_length > 0)
+        snake->pending_length--;
 }
 
 void
@@ -68,7 +77,13 @@ snk_snake_add_pending_length(snk_snake *snake, uint32_t length)
 uint32_t
 snk_snake_get_length(const snk_snake *snake)
 {
-    return snake->length;
+    uint32_t result = 0;
+    uint32_t i;
+
+    for (i = 0 ; i < snk_joint_buffer_size(&snake->joints); i++)
+        result += snk_joint_buffer_get(&snake->joints, i)->length;
+
+    return result + snake->head_length;
 }
 
 uint32_t
@@ -82,7 +97,7 @@ snk_snake_pos_iter_init(snk_snake_position_iter *iter, const snk_snake *snake)
 {
     iter->snake = snake;
     iter->pos = snake->head_position;
-    iter->i = 0;
+    iter->len = snake->head_length;
     iter->joint_i = 0;
     iter->direction = snk_direction_reverse(snake->head_direction);
 }
@@ -90,7 +105,7 @@ snk_snake_pos_iter_init(snk_snake_position_iter *iter, const snk_snake *snake)
 int
 snk_snake_pos_iter_is_not_end(const snk_snake_position_iter *iter)
 {
-    return iter->i < iter->snake->length;
+    return iter->len != 0;
 }
 
 void
@@ -98,20 +113,17 @@ snk_snake_pos_iter_next(snk_snake_position_iter *iter)
 {
     const snk_joint *next_joint;
 
-    iter->i++;
+    snk_position_advance(&iter->pos, iter->direction);
+    iter->len--;
 
-    if (snk_joint_buffer_size(&iter->snake->joints) > 0)
+    if (iter->len == 0 && snk_joint_buffer_size(&iter->snake->joints) > 0)
     {
         next_joint = snk_joint_buffer_get(&iter->snake->joints, iter->joint_i);
         if (next_joint != NULL)
         {
-            if (snk_position_equal(&iter->pos, snk_joint_get_position(next_joint)))
-            {
-                iter->direction = snk_joint_get_direction(next_joint);
-                iter->joint_i++;
-            }
+            iter->direction = snk_joint_get_direction(next_joint);
+            iter->joint_i++;
+            iter->len = next_joint->length;
         }
     }
-
-    snk_position_advance(&iter->pos, iter->direction);
 }
