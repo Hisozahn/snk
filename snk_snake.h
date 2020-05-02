@@ -80,18 +80,6 @@ snk_rc_type snk_snake_advance_check(const snk_snake *snake, snk_direction next_d
 void snk_snake_advance(snk_snake *snake, snk_direction next_direction);
 
 /**
- * Get all of the positions of a snake's head and body.
- *
- * @param[in] snake             Snake to get positions of
- * @param[in, out] n_positions  Size of the provided array, changes to number of retrieved position
- *                              if the function succeeds
- * @param[out] positions        Positions array
- *
- * @return                      Status code
- */
-snk_rc_type snk_snake_get_positions(const snk_snake *snake, size_t *n_positions, snk_position *positions);
-
-/**
  * Add pending length to a snake.
  *
  * @param[in,out] snake     Snake

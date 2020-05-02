@@ -62,26 +62,6 @@ snk_snake_advance(snk_snake *snake, snk_direction next_direction)
         snk_joint_buffer_del(&snake->joints);
 }
 
-snk_rc_type
-snk_snake_get_positions(const snk_snake *snake, size_t *n_positions, snk_position *positions)
-{
-    snk_snake_position_iter iter;
-    size_t size = 0;
-
-    SNK_SNAKE_FOREACH(&iter, snake)
-    {
-        if (size >= *n_positions)
-            return SNK_RC_NOBUF;
-
-        positions[size] = iter.pos;
-        size++;
-    }
-
-    *n_positions = size;
-
-    return 0;
-}
-
 void
 snk_snake_add_pending_length(snk_snake *snake, uint32_t length)
 {
