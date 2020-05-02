@@ -75,32 +75,51 @@ snk_create_field(uint32_t width, uint32_t height, uint32_t n_obstacles, const sn
     return 0;
 }
 
+static int
+snk_heads_cross(const snk_snake *snake_a, const snk_snake *snake_b)
+{
+    /* Brute force implementation */
+    snk_position pos_a;
+    snk_position pos_b;
+    uint32_t id_a;
+    uint32_t id_b;
+
+    for (id_a = 0, pos_a = *snk_snake_get_head_position(snake_a); id_a < snake_a->head_length;
+         snk_position_advance(&pos_a, snk_snake_get_head_direction(snake_a)), id_a++)
+    {
+        for (id_b = 0, pos_b = *snk_snake_get_head_position(snake_b); id_b < snake_b->head_length;
+             snk_position_advance(&pos_b, snk_snake_get_head_direction(snake_b)), id_b++)
+        {
+            if (snk_position_equal(&pos_a, &pos_b))
+                return 1;
+        }
+    }
+
+    return 0;
+}
+
 static snk_rc_type
 snk_check_snakes(size_t n_snakes, const snk_snake *snakes, const snk_field *field)
 {
     snk_snake_position_iter iter;
-    snk_position positions[64];
-    size_t n_positions = 0;
-    size_t snake_id;
     size_t i;
+    size_t j;
 
-    for (snake_id = 0; snake_id < n_snakes; snake_id++)
+    for (i = 0; i < n_snakes; i++)
     {
-        SNK_SNAKE_FOREACH(&iter, &snakes[snake_id])
+        SNK_SNAKE_FOREACH(&iter, &snakes[i])
         {
             if (!snk_is_position_available(&iter.pos, field))
                 return SNK_RC_INVALID;
+        }
+    }
 
-            for (i = 0; i < n_positions; i++)
-            {
-                if (snk_position_equal(&iter.pos, &positions[i]))
-                    return SNK_RC_INVALID;
-            }
-
-            if (n_positions >= SNK_ARRAY_LEN(positions))
-                return SNK_RC_NOBUF;
-
-            positions[n_positions++] = iter.pos;
+    for (i = 1; i < n_snakes; i++)
+    {
+        for (j = 0; j < i; j++)
+        {
+            if (snk_heads_cross(&snakes[i], &snakes[j]))
+                return SNK_RC_INVALID;
         }
     }
 
