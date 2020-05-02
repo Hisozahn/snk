@@ -130,11 +130,10 @@ snk_rc_type
 snk_create(const snk_field *field, size_t n_snakes, const snk_position *start_position,
            const snk_direction *start_directions, const uint32_t *start_lengths, snk_process *process)
 {
-    snk_process result;
     snk_rc_type rc;
     size_t i;
 
-    if (n_snakes > SNK_ARRAY_LEN(result.snakes))
+    if (n_snakes > SNK_ARRAY_LEN(process->snakes))
         return SNK_RC_INVALID;
 
     for (i = 0; i < n_snakes; i++)
@@ -143,22 +142,20 @@ snk_create(const snk_field *field, size_t n_snakes, const snk_position *start_po
             return SNK_RC_INVALID;
     }
 
-    result.field = *field;
+    process->field = *field;
 
     for (i = 0; i < n_snakes; i++)
     {
-        snk_snake_init(&start_position[i], start_directions[i], start_lengths[i], 0, &result.snakes[i]);
-        result.next_directions[i] = start_directions[i];
+        snk_snake_init(&start_position[i], start_directions[i], start_lengths[i], 0, &process->snakes[i]);
+        process->next_directions[i] = start_directions[i];
     }
 
-    rc = snk_check_snakes(n_snakes, result.snakes, &result.field);
+    rc = snk_check_snakes(n_snakes, process->snakes, &process->field);
     if (rc != 0)
         return rc;
 
-    result.n_snakes = n_snakes;
-    result.state = SNK_STATE_RUNNING;
-
-    *process = result;
+    process->n_snakes = n_snakes;
+    process->state = SNK_STATE_RUNNING;
 
     return 0;
 }
