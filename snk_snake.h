@@ -31,21 +31,21 @@ typedef struct snk_snake_position_iter {
 /** Init snake body positions iterator. It starts from the snake's head. */
 void snk_snake_pos_iter_init(snk_snake_position_iter *iter, const snk_snake *snake);
 
-/** Snake body positions iterator's "Has next element" condition */
-int snk_snake_pos_iter_has_next(const snk_snake_position_iter *iter);
+/** Snake body positions iterator's check that it is not finished */
+int snk_snake_pos_iter_is_not_end(const snk_snake_position_iter *iter);
 
 /** Move snake body positions iterator to the next position */
 void snk_snake_pos_iter_next(snk_snake_position_iter *iter);
 
 /**
  * Iterate snake body positions starting from the snake's head.
- * 
+ *
  * @param _iter     Position iterator pointer (snk_snake_position_iter *)
  * @param _snake    Snake object (const snk_snake *)
  */
 #define SNK_SNAKE_FOREACH(_iter, _snake) \
     for (snk_snake_pos_iter_init((_iter), (_snake)); \
-         snk_snake_pos_iter_has_next(_iter); \
+         snk_snake_pos_iter_is_not_end(_iter); \
          snk_snake_pos_iter_next(_iter))
 
 /**

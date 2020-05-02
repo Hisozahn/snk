@@ -110,7 +110,7 @@ snk_snake_pos_iter_init(snk_snake_position_iter *iter, const snk_snake *snake)
 }
 
 int
-snk_snake_pos_iter_has_next(const snk_snake_position_iter *iter)
+snk_snake_pos_iter_is_not_end(const snk_snake_position_iter *iter)
 {
     return iter->i < iter->snake->length;
 }
