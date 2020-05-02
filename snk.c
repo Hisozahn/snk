@@ -144,38 +144,123 @@ snk_create(const snk_field *field, size_t n_snakes, const snk_position *start_po
     return 0;
 }
 
-static snk_rc_type
-snk_snakes_advance_in_field(size_t n_snakes, snk_snake *snakes, const snk_direction *next_directions, snk_field *field)
+/** Position check result */
+enum snk_snake_position_check {
+    SNK_SNAKE_POSITION_CHECK_TAKEN, /**< Position is taken */
+    SNK_SNAKE_POSITION_CHECK_FREE, /**< Position is free */
+    SNK_SNAKE_POSITION_CHECK_ON_TAIL, /**< Position is taken by a snake's tail */
+};
+
+static enum snk_snake_position_check
+snk_is_position_valid_for_snake(size_t n_snakes, const snk_snake *snakes,
+                                snk_field *field, const snk_position *pos,
+                                size_t *collision_snake_id)
 {
-    snk_snake snakes_copy[SNK_SNAKES_MAX];
-    snk_rc_type rc;
+    snk_snake_position_iter iter;
     size_t i;
 
+    if (collision_snake_id != NULL)
+        *collision_snake_id = SIZE_MAX;
+
+    if (!snk_is_position_available(pos, field))
+        return SNK_SNAKE_POSITION_CHECK_TAKEN;
 
     for (i = 0; i < n_snakes; i++)
     {
-        snakes_copy[i] = snakes[i];
-        rc = snk_snake_advance(&snakes_copy[i], next_directions[i]);
+        SNK_SNAKE_FOREACH(&iter, &snakes[i])
+        {
+            if (snk_position_equal(&iter.pos, pos))
+            {
+                if (collision_snake_id != NULL)
+                    *collision_snake_id = i;
+
+                snk_snake_pos_iter_next(&iter);
+
+                return snk_snake_pos_iter_is_not_end(&iter) ? SNK_SNAKE_POSITION_CHECK_TAKEN :
+                       SNK_SNAKE_POSITION_CHECK_ON_TAIL;
+            }
+        }
+    }
+
+    return SNK_SNAKE_POSITION_CHECK_FREE;
+}
+
+static snk_rc_type
+snk_snakes_advance_in_field(size_t n_snakes, snk_snake *snakes, const snk_direction *next_directions, snk_field *field)
+{
+    snk_position heads_next[SNK_SNAKES_MAX];
+    snk_rc_type rc;
+    size_t i;
+    size_t j;
+
+    /* Get all future positions of the snakes' heads */
+    for (i = 0; i < n_snakes; i++)
+    {
+        heads_next[i] = *snk_snake_get_head_position(&snakes[i]);
+        snk_position_advance(&heads_next[i], next_directions[i]);
+    }
+
+    /* Check that the future heads positions do not interfere with anything */
+    for (i = 0; i < n_snakes; i++)
+    {
+        size_t collision_snake_id;
+        enum snk_snake_position_check check;
+
+        check = snk_is_position_valid_for_snake(n_snakes, snakes, field, &heads_next[i], &collision_snake_id);
+        switch (check)
+        {
+            case SNK_SNAKE_POSITION_CHECK_TAKEN:
+                return SNK_RC_OVER;
+                break;
+
+            case SNK_SNAKE_POSITION_CHECK_ON_TAIL:
+                if (snk_snake_get_pending_length(&snakes[collision_snake_id]) > 0)
+                    return SNK_RC_OVER;
+
+                if (field->n_food > 0 &&
+                    snk_position_equal(&heads_next[collision_snake_id], &field->food))
+                {
+                    return SNK_RC_OVER;
+                }
+                break;
+
+            default:
+                break;
+        }
+    }
+
+    /* Check that no two heads share the same position */
+    for (i = 1; i < n_snakes; i++)
+    {
+        for (j = 0; j < i; j++)
+        {
+            if (snk_position_equal(&heads_next[i], &heads_next[j]))
+                return SNK_RC_OVER;
+        }
+    }
+
+    /* Check that advance for every snake will succeed */
+    for (i = 0; i < n_snakes; i++)
+    {
+        rc = snk_snake_advance_check(&snakes[i], next_directions[i]);
         if (rc != 0)
             return rc;
     }
 
-    rc = snk_check_snakes(n_snakes, snakes_copy, field);
-    if (rc != 0)
-        return (rc == SNK_RC_INVALID ? SNK_RC_OVER : rc);
+    /* Advance the snakes on the field */
+    for (i = 0; i < n_snakes; i++)
+        snk_snake_advance(&snakes[i], next_directions[i]);
 
+    /* Perform eating the food by the snakes */
     for (i = 0; i < n_snakes; i++)
     {
         if (field->n_food > 0 &&
-            snk_position_equal(snk_snake_get_head_position(&snakes_copy[i]), &field->food))
+            snk_position_equal(snk_snake_get_head_position(&snakes[i]), &field->food))
         {
-            snk_snake_add_pending_length(&snakes_copy[i], 1);
+            snk_snake_add_pending_length(&snakes[i], 1);
             field->n_food = 0;
         }
     }
-
-    for (i = 0; i < n_snakes; i++)
-        snakes[i] = snakes_copy[i];
 
     return 0;
 }
@@ -183,20 +268,8 @@ snk_snakes_advance_in_field(size_t n_snakes, snk_snake *snakes, const snk_direct
 static int
 snk_is_position_empty(size_t n_snakes, const snk_snake *snakes, snk_field *field, const snk_position *pos)
 {
-    snk_snake_position_iter iter;
-    size_t i;
-
-    if (!snk_is_position_available(pos, field))
+    if (snk_is_position_valid_for_snake(n_snakes, snakes, field, pos, NULL) != SNK_SNAKE_POSITION_CHECK_FREE)
         return 0;
-
-    for (i = 0; i < n_snakes; i++)
-    {
-        SNK_SNAKE_FOREACH(&iter, &snakes[i])
-        {
-            if (snk_position_equal(&iter.pos, pos))
-                return 0;
-        }
-    }
 
     if (field->n_food > 0 && (snk_position_equal(pos, &field->food)))
         return 0;

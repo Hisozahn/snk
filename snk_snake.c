@@ -29,42 +29,37 @@ snk_snake_get_head_direction(const snk_snake *snake)
 }
 
 snk_rc_type
+snk_snake_advance_check(const snk_snake *snake, snk_direction next_direction)
+{
+    if (snake->head_direction != next_direction)
+        return snk_joint_buffer_add_check(&snake->joints);
+
+    return 0;
+}
+
+void
 snk_snake_advance(snk_snake *snake, snk_direction next_direction)
 {
-    snk_snake snake_copy = *snake;
     snk_joint joint;
     uint32_t i;
     snk_snake_position_iter iter;
-    snk_rc_type rc;
 
-    snk_joint_init(&snake_copy.head_position, snk_direction_reverse(snake_copy.head_direction), &joint);
+    snk_joint_init(&snake->head_position, snk_direction_reverse(snake->head_direction), &joint);
 
-    if (snake_copy.head_direction != next_direction)
+    if (snake->head_direction != next_direction)
+        snk_joint_buffer_add(&snake->joints, &joint);
+
+    snake->head_direction = next_direction;
+    snk_position_advance(&snake->head_position, snake->head_direction);
+    if (snake->pending_length > 0)
     {
-        rc = snk_joint_buffer_add(&snake_copy.joints, &joint);
-        if (rc != 0)
-            return rc;
+        snake->length++;
+        snake->pending_length--;
     }
 
-    snake_copy.head_direction = next_direction;
-    snk_position_advance(&snake_copy.head_position, snake_copy.head_direction);
-    if (snake_copy.pending_length > 0)
-    {
-        snake_copy.length++;
-        snake_copy.pending_length--;
-    }
-
-    SNK_SNAKE_FOREACH(&iter, &snake_copy);
-    for (i = iter.joint_i; i < snk_joint_buffer_size(&snake_copy.joints); i++)
-    {
-        rc = snk_joint_buffer_del(&snake_copy.joints);
-        if (rc != 0)
-            return rc;
-    }
-
-    *snake = snake_copy;
-
-    return 0;
+    SNK_SNAKE_FOREACH(&iter, snake);
+    for (i = iter.joint_i; i < snk_joint_buffer_size(&snake->joints); i++)
+        snk_joint_buffer_del(&snake->joints);
 }
 
 snk_rc_type
@@ -97,6 +92,12 @@ uint32_t
 snk_snake_get_length(const snk_snake *snake)
 {
     return snake->length;
+}
+
+uint32_t
+snk_snake_get_pending_length(const snk_snake *snake)
+{
+    return snake->pending_length;
 }
 
 void

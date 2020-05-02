@@ -68,15 +68,24 @@ void snk_joint_buffer_init(snk_joint_buffer *buffer);
 const snk_joint * snk_joint_buffer_get(const snk_joint_buffer *buffer, uint32_t i);
 
 /**
- * Add an element to the head of a joint buffer.
+ * Check whether the next snk_joint_buffer_add() call to a @p buffer will succeed.
  *
- * @param[in,out] buffer    Buffer to add a joint to
- * @param[in] joint         Joint to add
+ * @param[in] buffer    Joint buffer
  *
  * @return                  Status code
  * @retval SNK_RC_NOBUF     Not enough space in buffer to store an element
  */
-snk_rc_type snk_joint_buffer_add(snk_joint_buffer *buffer, snk_joint *joint);
+snk_rc_type snk_joint_buffer_add_check(const snk_joint_buffer *buffer);
+
+/**
+ * Add an element to the head of a joint buffer.
+ *
+ * @note    Use snk_joint_buffer_add_check() to check whether this operation will succeed.
+ *
+ * @param[in,out] buffer    Buffer to add a joint to
+ * @param[in] joint         Joint to add
+ */
+void snk_joint_buffer_add(snk_joint_buffer *buffer, snk_joint *joint);
 
 /**
  * Get the number of elements currently inside a buffer.

@@ -44,18 +44,22 @@ snk_joint_buffer_get(const snk_joint_buffer *buffer, uint32_t i) {
 }
 
 snk_rc_type
-snk_joint_buffer_add(snk_joint_buffer *buffer, snk_joint *joint) {
-    uint32_t index;
-
+snk_joint_buffer_add_check(const snk_joint_buffer *buffer)
+{
     if (buffer->n_joints + 1U > SNK_ARRAY_LEN(buffer->joints))
         return SNK_RC_NOBUF;
+
+    return 0;
+}
+
+void
+snk_joint_buffer_add(snk_joint_buffer *buffer, snk_joint *joint) {
+    uint32_t index;
 
     index = get_index_in_buffer(buffer, (uint32_t)-1);
     buffer->joints[index] = *joint;
     buffer->n_joints++;
     buffer->first_joint = index;
-
-    return 0;
 }
 
 snk_rc_type

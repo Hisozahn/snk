@@ -61,6 +61,9 @@ void snk_snake_init(const snk_position *pos, snk_direction direction, const snk_
 /** Snake's head position getter */
 const snk_position *snk_snake_get_head_position(const snk_snake *snake);
 
+/** Check whether the next call to snk_snake_advance() will succeed. */
+snk_rc_type snk_snake_advance_check(const snk_snake *snake, snk_direction next_direction);
+
 /**
  * Advance a snake's position by one unit.
  * - The head is moving towards @p next_direction;
@@ -69,13 +72,12 @@ const snk_position *snk_snake_get_head_position(const snk_snake *snake);
  * - Length of a snake is increased if pending_length is not 0;
  *
  * @note    The function does not check if the new head's position interferes with snake's body
+ * @note    Use snk_snake_advance_check() to check whether this operation will succeed.
  *
  * @param[in,out] snake         Snake to advance position of
  * @param[in] next_direction    Direction to advance snake towards
- *
- * @return                      Status code
  */
-snk_rc_type snk_snake_advance(snk_snake *snake, snk_direction next_direction);
+void snk_snake_advance(snk_snake *snake, snk_direction next_direction);
 
 /**
  * Get all of the positions of a snake's head and body.
@@ -99,6 +101,9 @@ void snk_snake_add_pending_length(snk_snake *snake, uint32_t length);
 
 /** Snake's length getter */
 uint32_t snk_snake_get_length(const snk_snake *snake);
+
+/** Snake's pending length getter */
+uint32_t snk_snake_get_pending_length(const snk_snake *snake);
 
 /** Snake's head direction getter */
 snk_direction snk_snake_get_head_direction(const snk_snake *snake);
