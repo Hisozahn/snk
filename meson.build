@@ -1,36 +1,12 @@
-project('snk', 'c', default_options : ['c_std=c89'])
-
-extra_args = [
-    '-ggdb3',
-    '-Werror',
-    '-O3',
-    '-Wall',
-    '-Wextra',
-    '-Wcast-align',
-    '-Wcast-qual',
-    '-Wdisabled-optimization',
-    '-Wformat=2',
-    '-Winit-self',
-    '-Wlogical-op',
-    '-Wmissing-include-dirs',
-    '-Wredundant-decls',
-    '-Wshadow',
-    '-Wstrict-overflow=5',
-    '-Wundef',
-    '-Wunused',
-    '-Wno-variadic-macros',
-    '-fdiagnostics-show-option',
-    '-Wmaybe-uninitialized',
-    '-Wuninitialized',
-]
-
-executable('snk',
-    'main.c',
-    'snk.c',
-    'snk_joint.c',
-    'snk_position.c',
-    'snk_snake.c',
-    'snk_util.c',
-     c_args : extra_args,
-     dependencies: [],
+project(
+    'snk',
+    'c',
+    default_options : [
+        'c_std=c89',
+        'buildtype=release',
+        'default_library=static',
+    ],
 )
+
+subdir('lib')
+subdir('app')

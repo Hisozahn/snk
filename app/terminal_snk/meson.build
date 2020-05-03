@@ -1,0 +1,1 @@
+executable('terminal_snk', 'main.c', dependencies: dep_libsnk)

@@ -3,4 +3,5 @@ valgrind-out.txt
 cmake-build*/
 .idea/
 build/
+debug_build/
 .vscode/
