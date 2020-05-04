@@ -7,5 +7,7 @@ project(
     ],
 )
 
+cc = meson.get_compiler('c')
+
 subdir('lib')
 subdir('app')

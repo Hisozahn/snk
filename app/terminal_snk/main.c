@@ -5,28 +5,21 @@
 #include <stdlib.h>
 #include "snk.h"
 #include "snk_util.h"
+#include "terminal.h"
 
+/* Valid from 1 to 2 */
 #define PLAYERS_NUMBER 2
 
-#define CHECK_RC(_call)                                             \
-do                                                                  \
-{                                                                   \
-    if ((rc = (_call)) != 0)                                               \
-    {                                                               \
-        printf("line %d, failed call %s: %d\n", __LINE__, #_call, rc);      \
-        exit(1);                                                   \
-    }                                                               \
+#define CHECK_RC(_call)                                                     \
+do                                                                          \
+{                                                                           \
+    int __rc;                                                               \
+    if ((__rc = (_call)) != 0)                                              \
+    {                                                                       \
+        printf("line %d, failed call %s: %d\n", __LINE__, #_call, __rc);    \
+        goto cleanup;                                                       \
+    }                                                                       \
 } while (0)
-
-static void
-draw(const uint8_t *draw_data, uint32_t width, uint32_t height)
-{
-    uint32_t i;
-    for (i = 0; i < height; i++)
-    {
-        printf("%.*s\n", width, &draw_data[i * width]);
-    }
-}
 
 static int
 draw_data_convert(uint8_t *draw_data, size_t size)
@@ -60,94 +53,102 @@ draw_data_convert(uint8_t *draw_data, size_t size)
 int
 main(int argc, char *argv[])
 {
-    int i;
-    int j;
-    uint8_t draw_data[2048];
-    snk_field_obstacle obstacles[PLAYERS_NUMBER] = {{{0, 0}, {5, 0}}};
-    snk_position start_positions[PLAYERS_NUMBER] = {{5, 5}, {5, 7}};
-    snk_direction start_directions[PLAYERS_NUMBER] = {SNK_DIRECTION_RIGHT, SNK_DIRECTION_RIGHT};
-    uint32_t start_lengths[PLAYERS_NUMBER] = {5, 4};
+    /* Field setup */
+    const uint32_t field_width = 200;
+    const uint32_t field_height = 10;
+    snk_field_obstacle obstacles[] = {{{0, 0}, {5, 0}}};
+
+    /* Snakes setup */
+    snk_position start_positions[] = {{5, 5}, {5, 7}};
+    snk_direction start_directions[] = {SNK_DIRECTION_RIGHT, SNK_DIRECTION_RIGHT};
+    uint32_t start_lengths[] = {5, 4};
+
+    /* State machine and auxiliary structures */
+    const uint32_t draw_data_size = field_width * field_height;
+    uint8_t *draw_data = malloc(draw_data_size);
+    terminal_data_t *td = NULL;
     snk_process process;
     snk_field field;
-    int rc;
-    char input[1];
+    int input;
 
-    (void)argc;
-    (void)argv;
+    TERM_UNUSED(argc);
+    TERM_UNUSED(argv);
 
-    CHECK_RC(snk_create_field(15, 10, SNK_ARRAY_LEN(obstacles), obstacles, (uint32_t)time(NULL),
-            &field));
+    if (draw_data == NULL)
+        CHECK_RC(ENOMEM);
+
+    CHECK_RC(terminal_init(&td));
+
+    CHECK_RC(snk_create_field(field_width, field_height, SNK_ARRAY_LEN(obstacles), obstacles,
+                              (uint32_t)time(NULL), &field));
 
     CHECK_RC(snk_create(&field, PLAYERS_NUMBER, start_positions, start_directions, start_lengths, &process));
 
-    for (i = 0; i < 100; i++)
+    while (1)
     {
         snk_score score;
 
-        CHECK_RC(snk_next_tick(&process));
+        CHECK_RC(snk_render(&process, draw_data, draw_data_size));
+        CHECK_RC(draw_data_convert(draw_data, draw_data_size));
+
         snk_get_score(&process, &score);
+        CHECK_RC(terminal_draw(td, (char *)draw_data, process.field.width, process.field.height,
+                               PLAYERS_NUMBER, &score));
 
-        printf("score:");
-        for (j = 0; j < PLAYERS_NUMBER; j++)
-            printf(" %u", score.player[j]);
-        printf("\n");
+        terminal_msleep(td, 100);
 
-        CHECK_RC(snk_render(&process, draw_data, sizeof(draw_data)));
-
-        CHECK_RC(draw_data_convert(draw_data, sizeof(draw_data)));
-
-        draw(draw_data, process.field.width, process.field.height);
-
-        retry:
-
-        rc = fread(input, sizeof(input), 1, stdin);
-        if (rc != sizeof(input))
-            break;
-
-        snk_direction new_direction;
-        size_t id;
-        char c = (char)tolower(input[0]);
-
-        switch (c)
+        if (terminal_get_char(td, &input) == 0)
         {
-            case 'a':
-                new_direction = SNK_DIRECTION_LEFT;
-                id = 0;
-                break;
-            case 'd':
-                new_direction = SNK_DIRECTION_RIGHT;
-                id = 0;
-                break;
-            case 'w':
-                new_direction = SNK_DIRECTION_UP;
-                id = 0;
-                break;
-            case 's':
-                new_direction = SNK_DIRECTION_DOWN;
-                id = 0;
-                break;
-            case 'j':
-                new_direction = SNK_DIRECTION_LEFT;
-                id = 1;
-                break;
-            case 'l':
-                new_direction = SNK_DIRECTION_RIGHT;
-                id = 1;
-                break;
-            case 'i':
-                new_direction = SNK_DIRECTION_UP;
-                id = 1;
-                break;
-            case 'k':
-                new_direction = SNK_DIRECTION_DOWN;
-                id = 1;
-                break;
-            default:
-                goto retry;
+            snk_direction new_direction;
+            size_t id;
+            char c = (char)tolower(input);
 
+            switch (c)
+            {
+                case 'a':
+                    new_direction = SNK_DIRECTION_LEFT;
+                    id = 0;
+                    break;
+                case 'd':
+                    new_direction = SNK_DIRECTION_RIGHT;
+                    id = 0;
+                    break;
+                case 'w':
+                    new_direction = SNK_DIRECTION_UP;
+                    id = 0;
+                    break;
+                case 's':
+                    new_direction = SNK_DIRECTION_DOWN;
+                    id = 0;
+                    break;
+                case 'j':
+                    new_direction = SNK_DIRECTION_LEFT;
+                    id = 1;
+                    break;
+                case 'l':
+                    new_direction = SNK_DIRECTION_RIGHT;
+                    id = 1;
+                    break;
+                case 'i':
+                    new_direction = SNK_DIRECTION_UP;
+                    id = 1;
+                    break;
+                case 'k':
+                    new_direction = SNK_DIRECTION_DOWN;
+                    id = 1;
+                    break;
+                default:
+                    continue;
+            }
+            CHECK_RC(snk_choose_direction(&process, id, new_direction));
         }
-        CHECK_RC(snk_choose_direction(&process, id, new_direction));
+
+        CHECK_RC(snk_next_tick(&process));
     }
+
+cleanup:
+    terminal_fini(td);
+    free(draw_data);
 
     return 0;
 }
