@@ -1,8 +1,6 @@
 #ifndef __SNK_H__
 #define __SNK_H__
 
-#include <stdint.h>
-#include <stddef.h>
 #include "snk_defs.h"
 #include "snk_snake.h"
 #include "snk_joint.h"
