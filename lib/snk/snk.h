@@ -57,7 +57,8 @@ typedef enum snk_position_type {
 
 /** Type of a score */
 typedef struct snk_score {
-    uint32_t player[SNK_SNAKES_MAX];
+    uint32_t player[SNK_SNAKES_MAX]; /**< Players' scores, each value correponds to a snake
+                                          with an ID equal to the index in the array */
 } snk_score;
 
 /**
@@ -74,6 +75,9 @@ snk_rc_type snk_create_field(uint32_t width, uint32_t height, uint32_t n_obstacl
 
  /**
   * Initialize a snake process. The consistency of the snake position is checked.
+  *
+  * @note   After creation the numbers less than @p n_snakes are the snake IDs and represent
+  *         a specific snake in a @p process.
   *
   * @param[in] field                Field
   * @param[in] n_snakes             Number of snakes on the field
@@ -104,6 +108,7 @@ snk_rc_type snk_next_tick(snk_process *process);
  *       but the turn is ignored.
  *
  * @param[in,out] process   Snake process
+ * @param[in] snake_id      ID of the snake to choose direction for
  * @param[in] direction     New direction
  *
  * @return                  Status code
