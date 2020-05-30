@@ -15,3 +15,11 @@ executable('terminal_snk',
         extra_deps,
     ],
 )
+
+executable('testsnk',
+    ['main.c', 'terminal_common.c'],
+    dependencies: [
+        dep_libsnk,
+        extra_deps,
+    ],
+)
