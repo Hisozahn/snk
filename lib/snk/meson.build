@@ -22,6 +22,8 @@ extra_args = [
     # Make binaries independent of libc
     '-nostdlib',
     '-ffreestanding',
+    # C standard
+    '-std=c89',
 ]
 
 sources = files(
