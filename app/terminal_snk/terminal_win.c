@@ -8,6 +8,7 @@
 #define TERM_TERMINAL_BUF_SIZE 65536
 
 struct terminal_data_t {
+    HANDLE screenBuf;
     HANDLE hOutBuf;
     HANDLE hStdin;
     HANDLE hStdout;
@@ -19,6 +20,7 @@ int
 terminal_init(terminal_data_t **td)
 {
     terminal_data_t *td_out;
+    CONSOLE_SCREEN_BUFFER_INFO info;
     DWORD mode = 0;
     HANDLE hStdin;
     HANDLE hStdout;
@@ -42,12 +44,26 @@ terminal_init(terminal_data_t **td)
     if (!SetConsoleMode(hStdin, mode & (~ENABLE_ECHO_INPUT)))
         return EFAULT;
 
-    if (!SetConsoleCursorInfo(hStdout, &cursorInfo))
-        return EFAULT;;
-
     td_out->terminalBuf = malloc(TERM_TERMINAL_BUF_SIZE * sizeof(*td_out->terminalBuf));
     if (td_out->terminalBuf == NULL)
         return ENOMEM;
+
+    td_out->screenBuf = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL,
+                        CONSOLE_TEXTMODE_BUFFER, NULL);
+    if (td_out->screenBuf == INVALID_HANDLE_VALUE)
+        return EFAULT;
+
+    if (!GetConsoleScreenBufferInfo(hStdout, &info))
+        return EFAULT;
+
+    if (!SetConsoleScreenBufferSize(td_out->screenBuf, info.dwMaximumWindowSize))
+        return EFAULT;
+
+    if (!SetConsoleCursorInfo(td_out->screenBuf, &cursorInfo))
+        return EFAULT;
+
+    if (!SetConsoleActiveScreenBuffer(td_out->screenBuf))
+        return EFAULT;
 
     td_out->terminalBufSize = TERM_TERMINAL_BUF_SIZE;
     td_out->hStdin = hStdin;
@@ -60,6 +76,8 @@ terminal_init(terminal_data_t **td)
 void
 terminal_fini(terminal_data_t *td)
 {
+    CloseHandle(td->screenBuf);
+    free(td->terminalBuf);
     free(td);
 }
 
@@ -132,7 +150,7 @@ terminal_draw(terminal_data_t *td, const char *draw_data, uint32_t width, uint32
         td->terminalBuf[i].Attributes = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
     }
 
-    if (!GetConsoleScreenBufferInfo(td->hStdout, &info))
+    if (!GetConsoleScreenBufferInfo(td->screenBuf, &info))
         return EFAULT;
 
     if (info.dwSize.X * info.dwSize.Y > td->terminalBufSize)
@@ -166,7 +184,7 @@ terminal_draw(terminal_data_t *td, const char *draw_data, uint32_t width, uint32
         terminal_strcpy(&td->terminalBuf[(i + 1) * bufferSize.X], &draw_data[i * width], width, &spaceLeft);
     }
 
-    if (!WriteConsoleOutput(td->hStdout, td->terminalBuf, bufferSize, bufferCoord, &writeRegion))
+    if (!WriteConsoleOutput(td->screenBuf, td->terminalBuf, bufferSize, bufferCoord, &writeRegion))
         return EFAULT;
 
     return 0;
