@@ -470,7 +470,8 @@ snk_render_field_obstacle(const snk_field *field, const snk_field_obstacle *obst
 }
 
 snk_rc_type
-snk_render(const snk_process *process, uint8_t *data, size_t data_size)
+snk_render(const snk_process *process, uint8_t *data, size_t data_size,
+           uint32_t *width, uint32_t *height)
 {
     snk_snake_position_iter iter;
     snk_rc_type rc;
@@ -505,6 +506,9 @@ snk_render(const snk_process *process, uint8_t *data, size_t data_size)
                 return rc;
         }
     }
+
+    *width = process->field.width;
+    *height = process->field.height;
 
     return 0;
 }

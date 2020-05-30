@@ -90,12 +90,14 @@ main(int argc, char *argv[])
     while (1)
     {
         snk_score score;
+        uint32_t render_width;
+        uint32_t render_height;
 
-        CHECK_RC(snk_render(&process, draw_data, draw_data_size));
-        CHECK_RC(draw_data_convert(draw_data, draw_data_size));
+        CHECK_RC(snk_render(&process, draw_data, draw_data_size, &render_width, &render_height));
+        CHECK_RC(draw_data_convert(draw_data, render_width * render_height));
 
         snk_get_score(&process, &score);
-        CHECK_RC(terminal_draw(td, (char *)draw_data, process.field.width, process.field.height,
+        CHECK_RC(terminal_draw(td, (char *)draw_data, render_width, render_height,
                                PLAYERS_NUMBER, &score));
 
         terminal_msleep(td, 100);

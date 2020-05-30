@@ -131,9 +131,13 @@ snk_rc_type snk_get_score(snk_process *process, snk_score *score);
  * @param[in] process       Snake process
  * @param[out] data         Array to put rendered data
  * @param[in] data_size     Size of the provided array
+ * @param[out] width        Width of the rendered field in @p data
+ * @param[out] height       Height of the rendered field in @p data
+ *
  * @return                  Status code
  */
-snk_rc_type snk_render(const snk_process *process, uint8_t *data, size_t data_size);
+snk_rc_type snk_render(const snk_process *process, uint8_t *data, size_t data_size,
+                       uint32_t *width, uint32_t *height);
 snk_rc_type snk_destroy(snk_process *process);
 
 #ifdef __cplusplus
