@@ -7,8 +7,11 @@
 #include "snk_util.h"
 #include "terminal.h"
 
-/* Valid from 1 to 2 */
-#define PLAYERS_NUMBER 2
+/*
+ * Valid from 1 to 2.
+ * TODO: Some of the concurrent keyboard events are lost.
+ */
+#define PLAYERS_NUMBER 1
 
 #define CHECK_RC(_call)                                                     \
 do                                                                          \
