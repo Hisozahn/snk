@@ -1,6 +1,7 @@
 #include "terminal.h"
 #include "snk_util.h"
 #include <windows.h>
+#include <assert.h>
 #include <errno.h>
 #include <stdio.h>
 
@@ -133,6 +134,16 @@ terminal_draw(terminal_data_t *td, const char *draw_data, uint32_t width, uint32
 
     if (!GetConsoleScreenBufferInfo(td->hStdout, &info))
         return EFAULT;
+
+    if (info.dwSize.X * info.dwSize.Y > td->terminalBufSize)
+    {
+        const char new_height = 20;
+
+        assert(td->terminalBufSize > new_height);
+
+        info.dwSize.Y = new_height;
+        info.dwSize.X = td->terminalBufSize / new_height;
+    }
 
     bufferSize = info.dwSize;
     writeRegion.Right = bufferSize.X - 1;
