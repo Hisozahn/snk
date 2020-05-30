@@ -15,7 +15,8 @@ foreach lib : libs
     lib_obj = library(
         lib,
         sources,
-        c_args: extra_args,
+        c_args: extra_c_args,
+        link_args: extra_link_args,
         include_directories: includes,
         install: true,
         install_dir: 'lib',
