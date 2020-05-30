@@ -403,7 +403,7 @@ snk_choose_direction(snk_process *process, size_t snake_id, snk_direction direct
     if (!snk_direction_is_valid(direction))
         return SNK_RC_INVALID;
 
-    if (snake_id > process->n_snakes)
+    if (snake_id >= process->n_snakes)
         return SNK_RC_INVALID;
 
     /* Ignore direction if it is opposite to current direction of snake's head */
