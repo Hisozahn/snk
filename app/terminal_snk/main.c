@@ -57,8 +57,8 @@ int
 main(int argc, char *argv[])
 {
     /* Field setup */
-    const uint32_t field_width = 200;
-    const uint32_t field_height = 10;
+    const uint32_t field_width = 80;
+    const uint32_t field_height = 15;
     snk_field_obstacle obstacles[] = {{{0, 0}, {5, 0}}};
 
     /* Snakes setup */
