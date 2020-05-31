@@ -128,7 +128,8 @@ snk_check_snakes(size_t n_snakes, const snk_snake *snakes, const snk_field *fiel
 
 snk_rc_type
 snk_create(const snk_field *field, size_t n_snakes, const snk_position *start_position,
-           const snk_direction *start_directions, const uint32_t *start_lengths, snk_process *process)
+           const snk_direction *start_directions, const uint32_t *start_lengths,
+           const snk_config *config, snk_process *process)
 {
     snk_rc_type rc;
     size_t i;
@@ -146,7 +147,8 @@ snk_create(const snk_field *field, size_t n_snakes, const snk_position *start_po
 
     for (i = 0; i < n_snakes; i++)
     {
-        snk_snake_init(&start_position[i], start_directions[i], start_lengths[i], 0, &process->snakes[i]);
+        snk_snake_init(&start_position[i], start_directions[i], start_lengths[i], 0,
+                       config->wrap_joints, &process->snakes[i]);
         process->next_directions[i] = start_directions[i];
     }
 

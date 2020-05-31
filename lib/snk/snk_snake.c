@@ -3,9 +3,10 @@
 
 void
 snk_snake_init(const snk_position *pos, snk_direction direction,
-               uint32_t length, uint32_t pending_length, snk_snake *snake)
+               uint32_t length, uint32_t pending_length,
+               int8_t wrap_joints, snk_snake *snake)
 {
-    snk_joint_buffer_init(&snake->joints);
+    snk_joint_buffer_init(wrap_joints, &snake->joints);
 
     snake->head_direction = direction;
     snake->head_position = *pos;

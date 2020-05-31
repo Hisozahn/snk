@@ -54,7 +54,8 @@ void snk_snake_pos_iter_next(snk_snake_position_iter *iter);
  * @param[out] snake    Snake to initialize
  */
 void snk_snake_init(const snk_position *pos, snk_direction direction,
-                    uint32_t length, uint32_t pending_length, snk_snake *snake);
+                    uint32_t length, uint32_t pending_length,
+                    int8_t wrap_joints, snk_snake *snake);
 
 /** Snake's head position getter */
 const snk_position *snk_snake_get_head_position(const snk_snake *snake);

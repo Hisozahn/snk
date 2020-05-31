@@ -28,11 +28,16 @@ typedef struct snk_joint {
  * 1) Add to head;
  * 2) Delete from tail;
  * 3) Get by index, 0 means head;
+ *
+ * Since the buffer is fixed, the number of joints of a snake is limited.
+ * There is the @ref snk_joint_buffer.wrap_joints that makes the buffer
+ * wrap on overflow (the oldest added entry is overwritten).
  */
 typedef struct snk_joint_buffer {
     snk_joint joints[SNK_JOINTS_MAX]; /**< Joints array */
     uint32_t n_joints; /**< Current number of joints storing in the array */
     uint32_t first_joint; /**< Index of the first joint in the array */
+    int8_t wrap_joints; /**< Wrap joints on the buffer overflow */
 } snk_joint_buffer;
 
 /**
@@ -55,7 +60,7 @@ snk_direction snk_joint_get_direction(const snk_joint *joint);
  *
  * @param[out] buffer    Joint buffer to initialize
  */
-void snk_joint_buffer_init(snk_joint_buffer *buffer);
+void snk_joint_buffer_init(uint8_t wrap_joints, snk_joint_buffer *buffer);
 
 /**
  * Get an element from a joint buffer by index.

@@ -59,6 +59,15 @@ typedef struct snk_score {
                                           with an ID equal to the index in the array */
 } snk_score;
 
+/** Configuration */
+typedef struct snk_config {
+    int8_t wrap_joints; /**<
+                         * Number of snake joints existing at the same time are limited.
+                         * Set to 1 to make adding extra joint overwrite the oldest one.
+                         * Set to 0 to produce error on overflow.
+                         */
+} snk_config;
+
 /**
  * Initialize a field. The consistency of the field's obstacles is checked
  *
@@ -87,7 +96,8 @@ snk_rc_type snk_create_field(uint32_t width, uint32_t height, uint32_t n_obstacl
   * @return                         Status code
   */
 snk_rc_type snk_create(const snk_field *field, size_t n_snakes, const snk_position *start_positions,
-               const snk_direction *start_directions, const uint32_t *start_lengths, snk_process *process);
+               const snk_direction *start_directions, const uint32_t *start_lengths,
+               const snk_config *config, snk_process *process);
 
 /**
  * Continue snake process for a step. Should be called once in a fixed time interval.

@@ -21,7 +21,8 @@ snk_direction snk_joint_get_direction(const snk_joint *joint)
 }
 
 void
-snk_joint_buffer_init(snk_joint_buffer *buffer) {
+snk_joint_buffer_init(uint8_t wrap_joints, snk_joint_buffer *buffer) {
+    buffer->wrap_joints = wrap_joints;
     buffer->first_joint = 0;
     buffer->n_joints = 0;
 }
@@ -58,7 +59,7 @@ snk_joint_buffer_get_mutable(snk_joint_buffer *buffer, uint32_t i)
 snk_rc_type
 snk_joint_buffer_add_check(const snk_joint_buffer *buffer)
 {
-    if (buffer->n_joints + 1U > SNK_ARRAY_LEN(buffer->joints))
+    if (!buffer->wrap_joints && (buffer->n_joints + 1U > SNK_ARRAY_LEN(buffer->joints)))
         return SNK_RC_NOBUF;
 
     return 0;
@@ -70,7 +71,10 @@ snk_joint_buffer_add(snk_joint_buffer *buffer, snk_joint *joint) {
 
     index = get_index_in_buffer(buffer, (uint32_t)-1);
     buffer->joints[index] = *joint;
-    buffer->n_joints++;
+
+    if (buffer->n_joints < SNK_ARRAY_LEN(buffer->joints))
+        buffer->n_joints++;
+
     buffer->first_joint = index;
 }
 
