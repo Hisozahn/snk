@@ -21,7 +21,9 @@ terminal_get_char(terminal_data_t *td, int *c)
 {
     TERM_UNUSED(td);
 
-    *c = getchar();
+    do {
+        *c = getchar();
+    } while (*c == '\n');
 
     return 0;
 }

@@ -105,7 +105,7 @@ main(int argc, char *argv[])
 
         if (terminal_get_char(td, &input) == 0)
         {
-            snk_direction new_direction;
+            snk_direction new_direction = SNK_DIRECTION_INVALID;
             size_t id;
             char c = (char)tolower(input);
 
@@ -144,9 +144,10 @@ main(int argc, char *argv[])
                     id = 1;
                     break;
                 default:
-                    continue;
+                    break;
             }
-            CHECK_RC(snk_choose_direction(&process, id, new_direction));
+            if (new_direction != SNK_DIRECTION_INVALID)
+                CHECK_RC(snk_choose_direction(&process, id, new_direction));
         }
 
         CHECK_RC(snk_next_tick(&process));
