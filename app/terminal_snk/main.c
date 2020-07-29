@@ -67,7 +67,7 @@ main(int argc, char *argv[])
     uint32_t start_lengths[] = {5, 4};
 
     /* State machine and auxiliary structures */
-    snk_config config = {.wrap_joints = 1};
+    snk_settings settings = {.wrap_joints = 1};
     const uint32_t draw_data_size = field_width * field_height;
     uint8_t *draw_data = malloc(draw_data_size);
     terminal_data_t *td = NULL;
@@ -86,7 +86,8 @@ main(int argc, char *argv[])
     CHECK_RC(snk_create_field(field_width, field_height, SNK_ARRAY_LEN(obstacles), obstacles,
                               (uint32_t)time(NULL), &field));
 
-    CHECK_RC(snk_create(&field, PLAYERS_NUMBER, start_positions, start_directions, start_lengths, &config, &process));
+    CHECK_RC(snk_create(&field, PLAYERS_NUMBER, start_positions, start_directions,
+                        start_lengths, &settings, &process));
 
     while (1)
     {
