@@ -1,0 +1,41 @@
+{
+    "settings": {
+        "wrap_joints": true
+    },
+    "field": {
+        "width": 60,
+        "height": 20,
+        "obstacles": [
+            {
+                "x": 0,
+                "y": 0,
+                "width": 10,
+                "height": 1
+            },
+            {
+                "x": 20,
+                "y": 0,
+                "width": 10,
+                "height": 10
+            }
+        ]
+    },
+    "snakes": [
+        {
+            "length": 5,
+            "start_position": {
+                "x": 7,
+                "y": 4
+            },
+            "start_direction": "right"
+        },
+        {
+            "length": 7,
+            "start_position": {
+                "x": 8,
+                "y": 6
+            },
+            "start_direction": "right"
+        }
+    ]
+}

@@ -1,9 +1,11 @@
 libs = [
     'snk',
+    'snk_config',
 ]
 
 foreach lib : libs
     extra_args = []
+    extra_deps = []
     sources = []
     includes = []
 
@@ -20,6 +22,7 @@ foreach lib : libs
         include_directories: includes,
         install: true,
         install_dir: 'lib',
+        dependencies: extra_deps,
     )
     dep = declare_dependency(link_with: lib_obj, include_directories: includes)
 
