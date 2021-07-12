@@ -6,6 +6,7 @@
 #include "snk.h"
 #include "snk_util.h"
 #include "terminal.h"
+#include "snk_config.h"
 
 /*
  * Valid from 1 to 2.
@@ -23,6 +24,20 @@ do                                                                          \
         goto cleanup;                                                       \
     }                                                                       \
 } while (0)
+
+static const struct snk_config default_snk_config = {
+    .settings = { .wrap_joints = 1 },
+
+    .width = 60,
+    .height = 25,
+
+    .n_obstacles = 0,
+
+    .start_positions = {{ .x = 5, .y = 5 }, { .x = 5, .y = 10 }},
+    .start_directions = { SNK_DIRECTION_RIGHT, SNK_DIRECTION_RIGHT },
+    .start_lengths = { 5, 5 },
+    .n_snakes = 2,
+};
 
 static int
 draw_data_convert(uint8_t *draw_data, size_t size)
@@ -56,38 +71,50 @@ draw_data_convert(uint8_t *draw_data, size_t size)
 int
 main(int argc, char *argv[])
 {
-    /* Field setup */
-    const uint32_t field_width = 80;
-    const uint32_t field_height = 15;
-    snk_field_obstacle obstacles[] = {{{0, 0}, {5, 0}}};
-
-    /* Snakes setup */
-    snk_position start_positions[] = {{5, 5}, {5, 7}};
-    snk_direction start_directions[] = {SNK_DIRECTION_RIGHT, SNK_DIRECTION_RIGHT};
-    uint32_t start_lengths[] = {5, 4};
-
     /* State machine and auxiliary structures */
-    snk_settings settings = {.wrap_joints = 1};
-    const uint32_t draw_data_size = field_width * field_height;
-    uint8_t *draw_data = malloc(draw_data_size);
+    uint32_t draw_data_size;
+    uint8_t *draw_data = NULL;
     terminal_data_t *td = NULL;
     snk_process process;
     snk_field field;
     int input;
+    snk_config config = default_snk_config;
 
-    TERM_UNUSED(argc);
-    TERM_UNUSED(argv);
+    if (argc > 1)
+    {
+        FILE *f;
+        char buf[4096] = {0};
+        size_t r;
+
+        f = fopen(argv[1], "r");
+        if (f == NULL)
+        {
+            fprintf(stderr, "%s: %d\n", __func__, __LINE__);
+            CHECK_RC(EFAULT);
+        }
+
+        r = fread(buf, 1, sizeof(buf), f);
+        if (r > 0 && r < sizeof(buf))
+        {
+            CHECK_RC(snk_config_load_from_json(buf, &config));
+            fprintf(stderr, "%s: %d READ CONFIG\n", __func__, __LINE__);
+        }
+    }
+
+    draw_data_size = config.width * config.height;
+    draw_data = malloc(draw_data_size);
 
     if (draw_data == NULL)
         CHECK_RC(ENOMEM);
 
     CHECK_RC(terminal_init(&td));
 
-    CHECK_RC(snk_create_field(field_width, field_height, SNK_ARRAY_LEN(obstacles), obstacles,
+    CHECK_RC(snk_create_field(config.width, config.height, config.n_obstacles, config.obstacles,
                               (uint32_t)time(NULL), &field));
 
-    CHECK_RC(snk_create(&field, PLAYERS_NUMBER, start_positions, start_directions,
-                        start_lengths, &settings, &process));
+    CHECK_RC(snk_create(&field, config.n_snakes, config.start_positions,
+                        config.start_directions,
+                        config.start_lengths, &config.settings, &process));
 
     while (1)
     {

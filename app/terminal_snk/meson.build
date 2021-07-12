@@ -17,6 +17,7 @@ executable('terminal_snk',
     sources,
     dependencies: [
         dep_libsnk,
+        dep_libsnk_config,
         extra_deps,
     ],
 )
@@ -24,6 +25,7 @@ executable('terminal_snk',
 executable('testsnk',
     ['main.c', 'terminal_common.c'],
     dependencies: [
+        dep_libsnk_config,
         dep_libsnk,
         extra_deps,
     ],
