@@ -50,7 +50,7 @@ snk_is_field_obstacle_possible(const snk_field_obstacle *obstacle, uint32_t fiel
 
 snk_rc_type
 snk_create_field(uint32_t width, uint32_t height, uint32_t n_obstacles, const snk_field_obstacle *obstacles,
-                 uint32_t rand_seed, snk_field *field)
+                 snk_field *field)
 {
     size_t i;
 
@@ -70,7 +70,6 @@ snk_create_field(uint32_t width, uint32_t height, uint32_t n_obstacles, const sn
     field->width = width;
     field->n_obstacles = n_obstacles;
     field->n_food = 0;
-    field->rand_seed = rand_seed;
 
     return 0;
 }
@@ -158,6 +157,7 @@ snk_create(const snk_field *field, size_t n_snakes, const snk_position *start_po
 
     process->n_snakes = n_snakes;
     process->state = SNK_STATE_RUNNING;
+    process->rand_seed = settings->rand_seed;
 
     return 0;
 }
@@ -315,7 +315,7 @@ snk_check_and_place_food(size_t n_snakes, const snk_snake *snakes, snk_field *fi
 }
 
 static snk_rc_type
-snk_generate_food(size_t n_snakes, const snk_snake *snakes, snk_field *field)
+snk_generate_food(size_t n_snakes, const snk_snake *snakes, snk_field *field, uint32_t *rand_seed)
 {
     snk_direction order[2][2] = {{SNK_DIRECTION_LEFT, SNK_DIRECTION_UP}, {SNK_DIRECTION_RIGHT, SNK_DIRECTION_DOWN}};
     snk_position food_pos;
@@ -327,8 +327,8 @@ snk_generate_food(size_t n_snakes, const snk_snake *snakes, snk_field *field)
     if (field->n_food > 0)
         return 0;
 
-    food_pos.x = snk_rand(&field->rand_seed) % field->width;
-    food_pos.y = snk_rand(&field->rand_seed) % field->height;
+    food_pos.x = snk_rand(rand_seed) % field->width;
+    food_pos.y = snk_rand(rand_seed) % field->height;
 
     if (snk_check_and_place_food(n_snakes, snakes, field, &food_pos) == 0)
         return 0;
@@ -382,7 +382,7 @@ snk_next_tick(snk_process *process)
         return rc;
     }
 
-    rc = snk_generate_food(process->n_snakes, process->snakes, &process->field);
+    rc = snk_generate_food(process->n_snakes, process->snakes, &process->field, &process->rand_seed);
     if (rc != 0)
         return rc;
 
@@ -513,6 +513,18 @@ snk_render(const snk_process *process, uint8_t *data, size_t data_size,
     *height = process->field.height;
 
     return 0;
+}
+
+size_t
+snk_render_data_size(snk_process *process)
+{
+    return process->field.width * process->field.height;
+}
+
+size_t
+snk_n_players(snk_process *process)
+{
+    return process->n_snakes;
 }
 
 snk_rc_type snk_get_score(snk_process *process, snk_score *score)

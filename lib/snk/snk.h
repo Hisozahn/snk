@@ -27,7 +27,6 @@ typedef struct snk_field {
     uint32_t n_obstacles; /**< Number of obstacles */
     snk_position food; /**< Position of a food item on the field */
     uint32_t n_food; /**< Number of food items on the field (only 0 and 1 are supported) */
-    uint32_t rand_seed; /**< Random seed to generate location of food items */
 } snk_field;
 
 /** Snake process' state */
@@ -43,6 +42,7 @@ typedef struct snk_process {
     snk_snake snakes[SNK_SNAKES_MAX]; /**< Snakes on the field */
     snk_direction next_directions[SNK_SNAKES_MAX]; /**< Directions for the snakes to turn on the next tick */
     snk_state state; /**< Process' state */
+    uint32_t rand_seed; /**< Current random seed */
 } snk_process;
 
 /** Type of a field position */
@@ -66,6 +66,7 @@ typedef struct snk_settings {
                          * Set to 1 to make adding extra joint overwrite the oldest one.
                          * Set to 0 to produce error on overflow.
                          */
+    uint32_t rand_seed; /**< Random seed to determine random events */
 } snk_settings;
 
 /**
@@ -78,7 +79,7 @@ typedef struct snk_settings {
  * @return Status code
  */
 snk_rc_type snk_create_field(uint32_t width, uint32_t height, uint32_t n_obstacles, const snk_field_obstacle *obstacles,
-                     uint32_t rand_seed,  snk_field *field);
+                             snk_field *field);
 
  /**
   * Initialize a snake process. The consistency of the snake position is checked.
@@ -148,6 +149,25 @@ snk_rc_type snk_get_score(snk_process *process, snk_score *score);
  */
 snk_rc_type snk_render(const snk_process *process, uint8_t *data, size_t data_size,
                        uint32_t *width, uint32_t *height);
+
+/**
+ * Get the required size of a data array for rendering the game.
+ *
+ * @param[in]  process      Snake process
+ *
+ * @return                  Required data size
+ */
+size_t snk_render_data_size(snk_process *process);
+
+/**
+ * Get the number of players of the snake process
+ *
+ * @param[in]  process      Snake process
+ *
+ * @return                  The number of players
+ */
+size_t snk_n_players(snk_process *process);
+
 snk_rc_type snk_destroy(snk_process *process);
 
 #ifdef __cplusplus

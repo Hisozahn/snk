@@ -140,7 +140,7 @@ snk_load_obstacles(json_t *json_obstacles, uint32_t *n_obstacles,
 }
 
 static snk_rc_type
-snk_load_field(json_t *field, snk_config *config)
+snk_load_field(json_t *field, snk_field_config *config)
 {
     json_t *obstacles;
 
@@ -160,12 +160,13 @@ static snk_rc_type
 snk_load_settings(json_t *json_settings, snk_settings *settings)
 {
     JSON_VALUE(json_settings, boolean, "wrap_joints", settings->wrap_joints);
+    JSON_VALUE(json_settings, integer, "rand_seed", settings->rand_seed);
 
     return 0;
 }
 
 static snk_rc_type
-snk_load_snakes(json_t *json_snakes, snk_config *config)
+snk_load_snakes(json_t *json_snakes, snk_snakes_config *config)
 {
     size_t n_snakes;
     snk_rc_type rc;
@@ -221,15 +222,23 @@ snk_config_load_from_json(const char *json_str, snk_config *config)
         return rc;
     }
 
-    rc = snk_load_field(field, config);
+    rc = snk_load_field(field, &config->field);
     if (rc != 0) {
         return rc;
     }
 
-    rc = snk_load_snakes(snakes, config);
+    rc = snk_load_snakes(snakes, &config->snakes);
     if (rc != 0) {
         return rc;
     }
 
     return 0;
+}
+
+void
+snk_config_set_seed_if_unset(snk_config *config, uint32_t rand_seed)
+{
+    if (config->settings.rand_seed == SNK_CONFIG_RAND_SEED_UNSET) {
+        config->settings.rand_seed = rand_seed;
+    }
 }

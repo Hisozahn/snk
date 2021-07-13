@@ -5,8 +5,10 @@ extra_deps = [
 
 sources = files(
     'snk_config.c',
+    'snk_factory.c',
 )
 
 headers = files(
     'snk_config.h',
+    'snk_factory.h',
 )

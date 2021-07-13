@@ -1,6 +1,7 @@
 {
     "settings": {
-        "wrap_joints": true
+        "wrap_joints": true,
+        "rand_seed": 42
     },
     "field": {
         "width": 60,

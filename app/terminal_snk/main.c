@@ -7,12 +7,7 @@
 #include "snk_util.h"
 #include "terminal.h"
 #include "snk_config.h"
-
-/*
- * Valid from 1 to 2.
- * TODO: Some of the concurrent keyboard events are lost.
- */
-#define PLAYERS_NUMBER 1
+#include "snk_factory.h"
 
 #define CHECK_RC(_call)                                                     \
 do                                                                          \
@@ -26,17 +21,23 @@ do                                                                          \
 } while (0)
 
 static const struct snk_config default_snk_config = {
-    .settings = { .wrap_joints = 1 },
+    .settings = {
+        .wrap_joints = 1,
+        .rand_seed = SNK_CONFIG_RAND_SEED_UNSET,
+    },
 
-    .width = 60,
-    .height = 25,
+    .field = {
+        .width = 60,
+        .height = 25,
+        .n_obstacles = 0,
+    },
 
-    .n_obstacles = 0,
-
-    .start_positions = {{ .x = 5, .y = 5 }, { .x = 5, .y = 10 }},
-    .start_directions = { SNK_DIRECTION_RIGHT, SNK_DIRECTION_RIGHT },
-    .start_lengths = { 5, 5 },
-    .n_snakes = 2,
+    .snakes = {
+        .start_positions = {{ .x = 5, .y = 5 }, { .x = 5, .y = 10 }},
+        .start_directions = { SNK_DIRECTION_RIGHT, SNK_DIRECTION_RIGHT },
+        .start_lengths = { 5, 5 },
+        .n_snakes = 2,
+    }
 };
 
 static int
@@ -76,7 +77,7 @@ main(int argc, char *argv[])
     uint8_t *draw_data = NULL;
     terminal_data_t *td = NULL;
     snk_process process;
-    snk_field field;
+    size_t n_players;
     int input;
     snk_config config = default_snk_config;
 
@@ -101,20 +102,17 @@ main(int argc, char *argv[])
         }
     }
 
-    draw_data_size = config.width * config.height;
+    snk_config_set_seed_if_unset(&config, time(NULL));
+    CHECK_RC(snk_create_from_config(&config, &process));
+
+    n_players = snk_n_players(&process);
+    draw_data_size = snk_render_data_size(&process);
     draw_data = malloc(draw_data_size);
 
     if (draw_data == NULL)
         CHECK_RC(ENOMEM);
 
     CHECK_RC(terminal_init(&td));
-
-    CHECK_RC(snk_create_field(config.width, config.height, config.n_obstacles, config.obstacles,
-                              (uint32_t)time(NULL), &field));
-
-    CHECK_RC(snk_create(&field, config.n_snakes, config.start_positions,
-                        config.start_directions,
-                        config.start_lengths, &config.settings, &process));
 
     while (1)
     {
@@ -127,7 +125,7 @@ main(int argc, char *argv[])
 
         snk_get_score(&process, &score);
         CHECK_RC(terminal_draw(td, (char *)draw_data, render_width, render_height,
-                               PLAYERS_NUMBER, &score));
+                               n_players, &score));
 
         terminal_msleep(td, 100);
 
