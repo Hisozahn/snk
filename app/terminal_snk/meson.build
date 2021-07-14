@@ -3,10 +3,10 @@ sources = ['main.c']
 
 if (host_machine.system() == 'linux')
     extra_deps += cc.find_library('ncursesw')
-    sources += ['terminal_linux.c']
+    sources += ['terminal_ncurses.c']
 elif (host_machine.system() == 'darwin')
     extra_deps += cc.find_library('ncurses')
-    sources += ['terminal_linux.c']
+    sources += ['terminal_ncurses.c']
 elif (host_machine.system() == 'windows')
     sources += ['terminal_win.c']
 else
